@@ -1,0 +1,7 @@
+*.sublime-completions
+*.sublime-snippet
+.bundle/
+_output
+Gemfile.lock
+todo.md
+vendor/
