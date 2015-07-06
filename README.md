@@ -1,11 +1,14 @@
 # Atomize Snippets
 
+[![The MIT License](https://img.shields.io/badge/license-MIT-orange.svg?style=flat-square)](http://opensource.org/licenses/MIT)
+[![GitHub release](https://img.shields.io/github/release/idleberg/atomize-snippets.svg?style=flat-square)](https://github.com/idleberg/atomize-snippets/releases)
+
 A Ruby scripts to convert [Sublime Text](http://www.sublimetext.com/) snippets for [Atom](http://atom.io)
 
 ## Installation
 
 1. Clone the repository `git clone https://github.com/idleberg/atomize-snippets.git`
-2. Change directory `cd tomize-snippets.git`
+2. Change directory `cd atomize-snippets.git`
 3. Install Gems using [Bundler](http://bundler.io/) `bundle install`
 
 ## Usage
@@ -26,4 +29,4 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 ## Donate
 
-You are welcome support this project using [Flattr](https://flattr.com/submit/auto?user_id=idleberg&url=https://github.com/idleberg/tomize-snippets) or Bitcoin `17CXJuPsmhuTzFV2k4RKYwpEHVjskJktRd`
+You are welcome support this project using [Flattr](https://flattr.com/submit/auto?user_id=idleberg&url=https://github.com/idleberg/atomize-snippets) or Bitcoin `17CXJuPsmhuTzFV2k4RKYwpEHVjskJktRd`
