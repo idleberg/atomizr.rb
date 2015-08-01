@@ -220,7 +220,7 @@ ARGV.options do |opts|
         exit
     end
 
-    opts.on("--input=<file>", Array, "Input file(s)") {
+    opts.on("--input=<file>", String, "Input file(s)") {
         |input| $input = input
     }
 
