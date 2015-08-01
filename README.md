@@ -30,7 +30,7 @@ A Ruby scripts to convert [Sublime Text](http://www.sublimetext.com/) snippets a
 ./atomize.rb --input=<file> --output=<file> --scope=.text.html
 ```
 
-Use `.atomize.rb --help` for details
+See `.atomize.rb --help` for details
 
 ## License
 
