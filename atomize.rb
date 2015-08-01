@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-$version = "0.2.1"
+$version = "0.3.0"
 
 # require "builder"
 require "json"
@@ -42,12 +42,31 @@ def read_json(item)
     return json
 end
 
-def get_xml_scope(xml)
+def get_outname(type, item)
+    if $output == type
+        if ($input.start_with? "*.") || (($input.end_with? ".*"))
+            file = item
+        else
+            file = $input
+        end
+        output = File.basename(file, ".*")+"."+type
+    else
+        output = $output
+    end
+
+    return output
+end
+
+def get_scope(data, mode)
     scope = ""
 
     if $scope == nil
         scope += "."
-        scope += xml.xpath("//scope")[0].text.strip
+        if mode == 'xml'
+            scope += data.xpath("//scope")[0].text.strip
+        elsif mode == 'json'
+            scope += data["scope"]
+        end
         puts "Using default scope '"+scope+"'"
     else
         if $scope[0] != "."
@@ -60,27 +79,9 @@ def get_xml_scope(xml)
     return scope
 end
 
-def get_json_scope(json)
-    scope = ""
+def json_to_cson(json, many = false)
 
-    if $scope == nil
-        scope += "+"
-        scope += json["scope"]
-        puts "Using default scope '"+scope+"'"
-    else
-        if $scope[0] != "."
-            scope += "."
-        end
-        scope += $scope
-        puts "Override scope using '"+scope+"'"
-    end
-
-    return scope
-end
-
-def json_to_cson(json)
-
-    scope = get_json_scope(json)
+    scope = get_scope(json, 'json')
     
     cson = "'"+scope+"':\n"
     
@@ -93,24 +94,8 @@ def json_to_cson(json)
         cson += "    'body': '"+contents+"'\n"
     end
 
-    return cson
-end
-
-def json_to_many_cson(json)
-
-    scope = get_json_scope(json)
-    
-    cson = "'"+scope+"':\n"
-    
-    json["completions"].each do |line|
-        trigger = line["trigger"]
-        contents = line["contents"]
-
-        cson += "  '"+trigger+"':\n"
-        cson += "    'prefix': '"+trigger+"'\n"
-        cson += "    'body': '"+contents+"'\n"
-
-        puts "Writing #{trigger}.cson"
+    if many == true
+        puts "Writing '#{trigger}.cson'"
         File.open("./_output/"+trigger+".cson","w") do |f|
             f.write(cson)
         end
@@ -119,9 +104,9 @@ def json_to_many_cson(json)
     return cson
 end
 
-def json_to_many_json(json)
+def json_to_json(json, many = false)
 
-    scope = get_json_scope(json)
+    scope = get_scope(json, 'json')
     
     json["completions"].each do |line|
         
@@ -129,32 +114,33 @@ def json_to_many_json(json)
         contents = line["contents"]
 
         # Create object
-        json = {
+        file = {
             scope => {
                 trigger => {
-                    :prefix => trigger,
-                    :body => contents
+                    'prefix' => trigger,
+                    'body' => contents
                 }
             }
         }
 
-        puts "Writing #{trigger}.json"
-        File.open('_output/'+trigger+'.json',"w") do |f|
-          f.write(JSON.pretty_generate(json))
+        if many == true
+            puts "Writing '#{trigger}.json'"
+            File.open('_output/'+trigger+'.json',"w") do |f|
+              f.write(JSON.pretty_generate(file))
+            end
+        else
+            return file
         end
     end
 
-    return json
 end
 
 def xml_to_cson(xml)
     
-    scope = get_xml_scope(xml)
+    scope = get_scope(xml, 'xml')
 
-    if $input_counter == 0
-        cson = "'"+scope+"':\n"
-    end
-
+    cson = "'"+scope+"':\n"
+    
     trigger = xml.xpath("//tabTrigger")[0].text.strip
 
     xml.xpath("//content").each do |node|
@@ -178,7 +164,7 @@ end
 
 def xml_to_json(xml)
 
-    scope = get_xml_scope(xml)
+    scope = get_scope(xml, 'xml')
 
     trigger = xml.xpath("//tabTrigger")[0].text.strip
     contents = xml.xpath("//content")[0].text.strip
@@ -207,6 +193,7 @@ end
 $scope = nil
 $merge = false
 $split = false
+$array = []
 
 args = ARGV.count
  
@@ -263,7 +250,7 @@ puts meta_info
 
 if args < 1
     abort("\nError: no arguments passed")
-end 
+end
 
 if  ($input.end_with? ".sublime-completions") || ($input.end_with? ".json")
 
@@ -272,21 +259,28 @@ if  ($input.end_with? ".sublime-completions") || ($input.end_with? ".json")
 
         if $split == true
             if $output == "cson"
-                json_to_many_cson(json)
+                json_to_cson(json, true)
             else $output == "json"
-                json_to_many_json(json)
+                json_to_json(json, true)
             end
         else
-            cson = json_to_cson(json)
+            if ($output.end_with? ".cson") || ($output == "cson")
+                data = json_to_cson(json)
+                output = get_outname('cson', item)
+                
+                puts "Writing '#{output}'"
+                File.open("./_output/"+output,"w") do |f|
+                    f.write(data)
+                end
 
-            # match output file to input basename
-            if $output == "cson"
-                $output = File.basename($input, ".*")+".cson"
-            end
-            
-            puts "Writing '#{$output}'"
-            File.open("./_output/"+$output,"w") do |f|
-                f.write(cson)
+            elsif ($output.end_with? ".json") || ($output == "json")
+                data = json_to_json(json)
+                output = get_outname('json', item)
+
+                puts "Writing '#{output}'"
+                File.open('_output/'+output,"w") do |f|
+                  f.write(JSON.pretty_generate(data))
+                end
             end
         end
 
@@ -296,40 +290,76 @@ if  ($input.end_with? ".sublime-completions") || ($input.end_with? ".json")
 
 elsif ($input.end_with? ".sublime-snippet") || ($input.end_with? ".xml")
 
+    # scope = nil
+    # completions = Array.new
+
     Dir.glob($input) do |item|
 
         xml = read_xml(item)
 
-        if ($output.end_with? ".cson") || ($output == "cson")
-            cson = xml_to_cson(xml)
-            
-            # match output file to input basename
-            if $output == "cson"
-                $output = File.basename($input, ".*")+".cson"
-            end
+        # if $merge == true
+        #     # if $output == "cson"
+        #     #     json_to_cson(json, true)
+        #     # else $output == "json"
+        #     #     json_to_json(json, true)
+        #     # end
+        #     if $input_counter == 0
+        #         scope = get_scope(xml, 'xml')
+        #         completions << scope
+        #     end
+        #     trigger = xml.xpath("//tabTrigger")[0].text.strip
+        #     contents = xml.xpath("//content")[0].text.strip
 
-            puts "Writing '#{$output}'"
-            File.open("./_output/"+$output,"w") do |f|
-                f.write(cson)
-            end
+        #     completions << {
+        #         trigger => {
+        #             :prefix => trigger,
+        #             :body => contents
+        #         }
+        #     }
+        # else
+            if ($output.end_with? ".cson") || ($output == "cson")
+                cson = xml_to_cson(xml)
+                output = get_outname('cson', item)
 
-        elsif ($output.end_with? ".json") || ($output == "json")
-            json = xml_to_json(xml)
-            
-            # match output file to input basename
-            if $output == "json"
-                $output = File.basename($input, ".*")+".json"
-            end
+                puts "Writing '#{output}'"
+                File.open("./_output/"+output,"w") do |f|
+                    f.write(cson)
+                end
 
-            puts "Writing '#{$output}'"
-            File.open("./_output/"+$output,"w") do |f|
-                f.write(JSON.pretty_generate(json))
-            end         
+            elsif ($output.end_with? ".json") || ($output == "json")
+                json = xml_to_json(xml)
+                
+                # match output file to input basename
+                if $output == "json"
+                    if ($input.start_with? "*.") || (($input.end_with? ".*"))
+                        file = item
+                    else
+                        file = $input
+                    end
+                    output = File.basename(file, ".*")+".json"
+                end
+
+
+                puts "Writing '#{output}'"
+                File.open("./_output/"+output,"w") do |f|
+                    f.write(JSON.pretty_generate(json))
+                end         
+            end
         end
+
 
         $input_counter += 1
         $output_counter += 1
-    end
+    # end
+
+    # if $merge == true
+    #     output = $output
+
+    #     puts "Writing '#{output}'"
+    #     File.open("./_output/"+output,"w") do |f|
+    #         f.write(JSON.pretty_generate(completions))
+    #     end   
+    # end
 else
     puts "\nError: Unknown file passed (#{$input})"
 end
