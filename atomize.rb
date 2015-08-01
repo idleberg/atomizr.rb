@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-$version = 0.2
+$version = "0.2.1"
 
 # require "builder"
 require "json"
@@ -25,7 +25,7 @@ EOF
 
 # Methods
 def read_xml(item)
-    puts "\nReading snippet file "+item
+    puts "\nReading snippet file '#{item}'"
 
     file = File.read(item)
     xml = Nokogiri::XML(file)
@@ -34,7 +34,7 @@ def read_xml(item)
 end
 
 def read_json(item)
-    puts "\nReading completion file "+item
+    puts "\nReading completion file '#{item}'"
 
     file = File.read(item)
     json = JSON.load(file)
@@ -163,10 +163,8 @@ def xml_to_cson(xml)
         cson += "  '"+trigger+"':\n"
         cson += "    'prefix': '"+trigger+"'\n"
         if contents.lines.count <= 1
-            puts "Single line body"
             cson += "    'body': '"+contents+"'\n"
         else
-            puts "Multi line body"
             cson += "    'body': \"\"\"\n"
             contents.each_line do |line|
                 cson += "      "+line
@@ -209,6 +207,8 @@ end
 $scope = nil
 $merge = false
 $split = false
+
+args = ARGV.count
  
 # parse arguments
 ARGV.options do |opts|
@@ -261,6 +261,11 @@ end
 # let's go
 puts meta_info
 
+if args < 1
+    puts meta_info
+    abort("\nError: no arguments passed")
+end 
+
 if  ($input.end_with? ".sublime-completions") || ($input.end_with? ".json")
 
     Dir.glob($input) do |item|
@@ -277,10 +282,10 @@ if  ($input.end_with? ".sublime-completions") || ($input.end_with? ".json")
 
             # match output file to input basename
             if $output == "cson"
-                $output = File.basename($input)+".cson"
+                $output = File.basename($input, ".*")+".cson"
             end
             
-            puts "Writing #{$output}"
+            puts "Writing '#{$output}'"
             File.open("./_output/"+$output,"w") do |f|
                 f.write(cson)
             end
@@ -301,10 +306,10 @@ elsif ($input.end_with? ".sublime-snippet") || ($input.end_with? ".xml")
             
             # match output file to input basename
             if $output == "cson"
-                $output = File.basename($input)+".cson"
+                $output = File.basename($input, ".*")+".cson"
             end
 
-            puts "Writing #{$output}"
+            puts "Writing '#{$output}'"
             File.open("./_output/"+$output,"w") do |f|
                 f.write(cson)
             end
@@ -314,10 +319,10 @@ elsif ($input.end_with? ".sublime-snippet") || ($input.end_with? ".xml")
             
             # match output file to input basename
             if $output == "json"
-                $output = File.basename($input)+".json"
+                $output = File.basename($input, ".*")+".json"
             end
 
-            puts "Writing #{$output}"
+            puts "Writing '#{$output}'"
             File.open("./_output/"+$output,"w") do |f|
                 f.write(JSON.pretty_generate(json))
             end         
