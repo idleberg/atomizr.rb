@@ -220,7 +220,7 @@ ARGV.options do |opts|
         exit
     end
 
-    opts.on("--input=<file>", String, "Input file") {
+    opts.on("--input=<file>", Array, "Input file(s)") {
         |input| $input = input
     }
 
@@ -262,7 +262,6 @@ end
 puts meta_info
 
 if args < 1
-    puts meta_info
     abort("\nError: no arguments passed")
 end 
 
