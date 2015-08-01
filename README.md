@@ -3,7 +3,7 @@
 [![The MIT License](https://img.shields.io/badge/license-MIT-orange.svg?style=flat-square)](http://opensource.org/licenses/MIT)
 [![GitHub release](https://img.shields.io/github/release/idleberg/atomize-snippets.svg?style=flat-square)](https://github.com/idleberg/atomize-snippets/releases)
 
-A Ruby scripts to convert [Sublime Text](http://www.sublimetext.com/) snippets for [Atom](http://atom.io)
+A Ruby scripts to convert [Sublime Text](http://www.sublimetext.com/) snippets and completions for [Atom](http://atom.io)
 
 ## Installation
 
@@ -13,7 +13,24 @@ A Ruby scripts to convert [Sublime Text](http://www.sublimetext.com/) snippets f
 
 ## Usage
 
-Run `./atomize [file.sublime-snippets]` to convert a specific file or `./atomize` to convert all in the current directory. The converted file will go into the `_output` directory.
+```bash
+# Convert snippet or completions
+./atomize.rb --input=<file> --output=<file> [options]
+
+# Convert file to CSON
+./atomize.rb --input=<file> --output=<file>.cson
+
+# Convert file to JSON
+./atomize.rb --input=<file> --output=<file>.json
+
+# Convert completions, save as multiple CSON files
+./atomize.rb --input=<file>.sublime-completions --output=cson --split
+
+# Override scope
+./atomize.rb --input=<file> --output=<file> --scope=.text.html
+```
+
+Use `.atomize.rb --help` for details
 
 ## License
 

@@ -1,19 +1,11 @@
 #!/usr/bin/env ruby
 
-=begin
+$version = 0.2
 
-    atomize-snippets, version 0.1
-    The MIT License
-    Copyright (c) 2015 Jan T. Sott
-    
-=end
-
-require "builder"
+# require "builder"
 require "json"
-
-# Configuration
-to_subfolder        = true
-delete_completions  = false
+require "nokogiri"
+require "optparse"
 
 # Snippets are created based on trigger-names. Here you define which characters
 # you want to filter before creating a snippet file
@@ -22,33 +14,188 @@ trigger_filter = []
 # Define which characters you want to substitute in the snippet
 contents_filter = []
 
+$input_counter  = 0
+$output_counter = 0
+
 meta_info = <<-EOF
-\natomize-snippets, version 0.1
+\natomize-snippets, version #{$version}
 The MIT License
 Copyright (c) 2015 Jan T. Sott
 EOF
 
 # Methods
-def write_snippet(dir, name, scope, trigger, contents)
+def read_xml(item)
+    puts "\nReading snippet file "+item
 
-    scope = '.'+scope
+    file = File.read(item)
+    xml = Nokogiri::XML(file)
+
+    return xml
+end
+
+def read_json(item)
+    puts "\nReading completion file "+item
+
+    file = File.read(item)
+    json = JSON.load(file)
+
+    return json
+end
+
+def get_xml_scope(xml)
+    scope = ""
+
+    if $scope == nil
+        scope += "."
+        scope += xml.xpath("//scope")[0].text.strip
+        puts "Using default scope '"+scope+"'"
+    else
+        if $scope[0] != "."
+            scope += "."
+        end
+        scope += $scope
+        puts "Override scope using '"+scope+"'"
+    end
+
+    return scope
+end
+
+def get_json_scope(json)
+    scope = ""
+
+    if $scope == nil
+        scope += "+"
+        scope += json["scope"]
+        puts "Using default scope '"+scope+"'"
+    else
+        if $scope[0] != "."
+            scope += "."
+        end
+        scope += $scope
+        puts "Override scope using '"+scope+"'"
+    end
+
+    return scope
+end
+
+def json_to_cson(json)
+
+    scope = get_json_scope(json)
     
-    # Create object
-    completions = {
-        # :generator => "http://github.com/idleberg/sublime-tinkertools",
-        scope => {
-            trigger => {
-                :prefix => trigger,
-                :body => contents
+    cson = "'"+scope+"':\n"
+    
+    json["completions"].each do |line|
+        trigger = line["trigger"]
+        contents = line["contents"]
+
+        cson += "  '"+trigger+"':\n"
+        cson += "    'prefix': '"+trigger+"'\n"
+        cson += "    'body': '"+contents+"'\n"
+    end
+
+    return cson
+end
+
+def json_to_many_cson(json)
+
+    scope = get_json_scope(json)
+    
+    cson = "'"+scope+"':\n"
+    
+    json["completions"].each do |line|
+        trigger = line["trigger"]
+        contents = line["contents"]
+
+        cson += "  '"+trigger+"':\n"
+        cson += "    'prefix': '"+trigger+"'\n"
+        cson += "    'body': '"+contents+"'\n"
+
+        puts "Writing #{trigger}.cson"
+        File.open("./_output/"+trigger+".cson","w") do |f|
+            f.write(cson)
+        end
+    end
+
+    return cson
+end
+
+def json_to_many_json(json)
+
+    scope = get_json_scope(json)
+    
+    json["completions"].each do |line|
+        
+        trigger = line["trigger"]
+        contents = line["contents"]
+
+        # Create object
+        json = {
+            scope => {
+                trigger => {
+                    :prefix => trigger,
+                    :body => contents
                 }
             }
         }
 
-    # Write to JSON
-    puts "Writing \"#{name}.json\""
-    File.open('_output/'+dir+'/'+name+'.json',"w") do |f|
-      f.write(JSON.pretty_generate(completions))
+        puts "Writing #{trigger}.json"
+        File.open('_output/'+trigger+'.json',"w") do |f|
+          f.write(JSON.pretty_generate(json))
+        end
     end
+
+    return json
+end
+
+def xml_to_cson(xml)
+    
+    scope = get_xml_scope(xml)
+
+    if $input_counter == 0
+        cson = "'"+scope+"':\n"
+    end
+
+    trigger = xml.xpath("//tabTrigger")[0].text.strip
+
+    xml.xpath("//content").each do |node|
+        contents = node.text.strip
+        # contents = contents_s.gsub("'", nil)
+        cson += "  '"+trigger+"':\n"
+        cson += "    'prefix': '"+trigger+"'\n"
+        if contents.lines.count <= 1
+            puts "Single line body"
+            cson += "    'body': '"+contents+"'\n"
+        else
+            puts "Multi line body"
+            cson += "    'body': \"\"\"\n"
+            contents.each_line do |line|
+                cson += "      "+line
+            end
+            cson +="\n    \"\"\"\n"
+        end
+    end
+
+    return cson
+end
+
+def xml_to_json(xml)
+
+    scope = get_xml_scope(xml)
+
+    trigger = xml.xpath("//tabTrigger")[0].text.strip
+    contents = xml.xpath("//content")[0].text.strip
+    
+    # Create object
+    json = {
+        scope => {
+            trigger => {
+                :prefix => trigger,
+                :body => contents
+            }
+        }
+    }
+
+    return json
 end
 
 def filter_str(input, filter)
@@ -58,80 +205,136 @@ def filter_str(input, filter)
     return input
 end
 
-puts meta_info
+# default options
+$scope = nil
+$merge = false
+$split = false
+ 
+# parse arguments
+ARGV.options do |opts|
+    opts.banner = "\nUsage: atomize.rb [options]"
 
-# Get output name from argument
-if ARGV.count > 1 
-    puts "\nError: Too many arguments passed (#{ARGV.count})"
-    exit
-elsif ARGV.count == 0
-    input = "*.sublime-completions"
-else 
-    input = ARGV[0]
-    unless input.end_with? ".sublime-completions"
-        input += ".sublime-completions"
+    opts.on("-h", "--help", "prints this help") do
+        puts meta_info
+        puts opts
+        exit
     end
+
+    opts.on("--input=<file>", String, "Input file") {
+        |input| $input = input
+    }
+
+    opts.on("--output=<file>", String, "Output file") {
+        |output| $output = output
+    }
+
+    # opts.on("-m", "--merge", "merge results into single file") {
+    #     if $split != true
+    #         $merge = true
+    #     else
+    #         abort("Error: You can't merge AND split")
+    #         # exit
+    #     end
+    # }
+
+    opts.on("-s", "--split", "splits result in single files") {
+        if $merge != true
+            $split = true
+        else
+            abort("Error: You can't split AND merge")
+            # exit
+        end
+    }
+
+    opts.on("--scope=<scope>", String, "overwrite scope") {
+        |val| $scope = val
+    }
+
+    opts.on_tail("-v", "--version", "show version") do
+        puts $version
+        exit
+    end
+
+    opts.parse!
 end
 
+# let's go
+puts meta_info
 
-input_counter  = 0
-output_counter = 0
+if  ($input.end_with? ".sublime-completions") || ($input.end_with? ".json")
 
-# Iterate over completions in current directory
-Dir.glob(input) do |item|
+    Dir.glob($input) do |item|
+        json = read_json(item)
 
-    puts "\nReading \"#{item}\""
-
-    json = File.read(item)
-    parsed = JSON.load(json)
-
-    scope = parsed["scope"]
-
-    # Iterate over completions in JSON
-    parsed["completions"].each do |line|
-        trigger  = line['trigger']
-        contents = line['contents'].to_s
-
-        # Break if empty
-        next if trigger.to_s.empty? || contents.to_s.empty?
-
-        # Run filters
-        output = filter_str(trigger, trigger_filter)
-        contents = filter_str(contents, contents_filter)
-
-        # Set target directory
-        if to_subfolder == true
-            dir = File.basename(item, ".*")
-
-            unless Dir.exists?('_output/'+dir)
-                Dir.mkdir('_output/')
-                Dir.mkdir('_output/'+dir)
+        if $split == true
+            if $output == "cson"
+                json_to_many_cson(json)
+            else $output == "json"
+                json_to_many_json(json)
             end
         else
-            dir = "."
+            cson = json_to_cson(json)
+
+            # match output file to input basename
+            if $output == "cson"
+                $output = File.basename($input)+".cson"
+            end
+            
+            puts "Writing #{$output}"
+            File.open("./_output/"+$output,"w") do |f|
+                f.write(cson)
+            end
         end
 
-        name = trigger.gsub(/[^0-9a-z# \.\(\)_-]/i, '')
-
-        write_snippet(dir, name, scope, trigger, contents)
-
-        output_counter += 1
+        $input_counter += 1
+        $output_counter += 1
     end
 
-    # Delete completions
-    if delete_completions == true
-        puts "x Deleting \"#{item}\""
-        File.delete(item)
-    end
+elsif ($input.end_with? ".sublime-snippet") || ($input.end_with? ".xml")
 
-    input_counter += 1
+    Dir.glob($input) do |item|
+
+        xml = read_xml(item)
+
+        if ($output.end_with? ".cson") || ($output == "cson")
+            cson = xml_to_cson(xml)
+            
+            # match output file to input basename
+            if $output == "cson"
+                $output = File.basename($input)+".cson"
+            end
+
+            puts "Writing #{$output}"
+            File.open("./_output/"+$output,"w") do |f|
+                f.write(cson)
+            end
+
+        elsif ($output.end_with? ".json") || ($output == "json")
+            json = xml_to_json(xml)
+            
+            # match output file to input basename
+            if $output == "json"
+                $output = File.basename($input)+".json"
+            end
+
+            puts "Writing #{$output}"
+            File.open("./_output/"+$output,"w") do |f|
+                f.write(JSON.pretty_generate(json))
+            end         
+        end
+
+        $input_counter += 1
+        $output_counter += 1
+    end
+else
+    puts "\nError: Unknown file passed (#{$input})"
 end
 
 # Game Over
-if input_counter == 0
-    puts "\nError: No files found"
-elsif input_counter == 1
-     puts "\nConverted #{input_counter} file into #{output_counter}"
+if $input_counter == 0
+    puts "\nNo files converted"
+elsif $input_counter == 1
+     puts "\nConverted #{$input_counter} file"
 else
-    puts "\nConverted #{input_counter} files into #{output_counter}"
+    puts "\nConverted #{$input_counter} files"
 end
