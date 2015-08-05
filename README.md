@@ -15,25 +15,25 @@ A Ruby script to convert [Sublime Text](http://www.sublimetext.com/) snippets an
 
 ```bash
 # Convert snippet or completions
-./atomize.rb --input=<file> --output=<file> [options]
+./atomize --input=<file> --output=<file> [options]
 
 # Convert file into CSON
-./atomize.rb --input=<file> --output=<file>.cson
+./atomize --input=<file> --output=<file>.cson
 
 # Convert file into JSON
-./atomize.rb --input=<file> --output=<file>.json
+./atomize --input=<file> --output=<file>.json
 
 # Convert completions, save as multiple CSON files
-./atomize.rb --input=<file>.sublime-completions --output=cson --split
+./atomize --input=<file>.sublime-completions --output=cson --split
 
 # Use quotes to convert multiple files at once
-./atomize.rb --input="snippets/*" --output=cson
+./atomize --input="snippets/*" --output=cson
 
 # Override scope
-./atomize.rb --input=<file> --output=<file> --scope=.text.html
+./atomize --input=<file> --output=<file> --scope=.text.html
 ```
 
-See `./atomize.rb --help` for details
+See `./atomize --help` for details
 
 ## License
 
