@@ -3,7 +3,7 @@
 [![The MIT License](https://img.shields.io/badge/license-MIT-orange.svg?style=flat-square)](http://opensource.org/licenses/MIT)
 [![GitHub release](https://img.shields.io/github/release/idleberg/atomize-snippets.svg?style=flat-square)](https://github.com/idleberg/atomize-snippets/releases)
 
-A Ruby scripts to convert [Sublime Text](http://www.sublimetext.com/) snippets and completions for [Atom](http://atom.io)
+A Ruby script to convert [Sublime Text](http://www.sublimetext.com/) snippets and completions into [Atom](http://atom.io) snippets
 
 ## Installation
 
