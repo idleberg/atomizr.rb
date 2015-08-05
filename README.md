@@ -13,7 +13,7 @@ A Ruby script to convert [Sublime Text](http://www.sublimetext.com/) snippets an
 
 ## Usage
 
-You might have to `chmod +x atomize` the first time. Otherwise, you can always use `ruby atomize [options]`.
+As a shorthand to `ruby atomize [options]`, you can set `chmod +x atomize` and run the script as follows:
 
 ```bash
 # Convert snippet or completions
