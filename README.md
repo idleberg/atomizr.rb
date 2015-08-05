@@ -17,14 +17,17 @@ A Ruby script to convert [Sublime Text](http://www.sublimetext.com/) snippets an
 # Convert snippet or completions
 ./atomize.rb --input=<file> --output=<file> [options]
 
-# Convert file to CSON
+# Convert file into CSON
 ./atomize.rb --input=<file> --output=<file>.cson
 
-# Convert file to JSON
+# Convert file into JSON
 ./atomize.rb --input=<file> --output=<file>.json
 
 # Convert completions, save as multiple CSON files
 ./atomize.rb --input=<file>.sublime-completions --output=cson --split
+
+# Use quotes to convert multiple files at once
+./atomize.rb --input="snippets/*" --output=cson
 
 # Override scope
 ./atomize.rb --input=<file> --output=<file> --scope=.text.html
