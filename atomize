@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-@version = "0.5.0"
+@version = "0.5.1"
 
 # require "builder"
 require "json"
@@ -293,17 +293,17 @@ ARGV.options do |opts|
     #     end
     # }
 
-    opts.on("-s", "--split", "splits result in single files") {
+    opts.on("-s", "--scope=<scope>", String, "overwrite scope") {
+        |val| @scope = val
+    }
+
+    opts.on("-S", "--split", "splits result in single files") {
         if @merge != true
             @split = true
         else
             abort("Error: You can't split AND merge")
             # exit
         end
-    }
-
-    opts.on("--scope=<scope>", String, "overwrite scope") {
-        |val| @scope = val
     }
 
     opts.on_tail("-v", "--version", "show version") do
