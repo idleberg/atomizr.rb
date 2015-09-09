@@ -32,7 +32,13 @@ As a shorthand to `ruby atomize [options]`, you can set `chmod +x atomize` and r
 ./atomize --input="snippets/*" --output=cson
 
 # Override scope
-./atomize --input=<file> --output=<file> --scope=.text.html
+./atomize --input=<file> --output=<file> --scope=text.html
+
+# Example using every possible argument
+./atomize --input=<file> --output=<file> --scope=text.html --split
+
+# Same as above, using shorthands
+./atomize -input <file> -o <file> -s text.html -S
 ```
 
 See `./atomize --help` for details
