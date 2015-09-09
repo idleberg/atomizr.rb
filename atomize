@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-@version = "0.4.0"
+@version = "0.4.1"
 
 # require "builder"
 require "json"
@@ -23,13 +23,14 @@ require "optparse"
 ]
 @scope_filter = [
     # https://gist.github.com/idleberg/fca633438329cc5ae317
-    ['source.c++', 'source.cpp'],
-    ['source.java-props', 'source.java-properties'],
-    ['source.objc++', 'source.objcpp'],
-    ['source.php', 'text.html.php'],
-    ['source.scss', 'source.css.scss'],
-    ['source.todo', 'text.todo'],
-    ['text.html.markdown', 'source.gfm']
+    [',', ''],
+    [/\.?source\.c\+\+/, '.source.cpp'],
+    [/\.?source\.java-props/, '.source.java-properties'],
+    [/\.?source\.objc\+\+/, '.source.objcpp'],
+    [/\.?source\.php/, '.text.html.php'],
+    [/\.?source\.scss/, '.source.css.scss'],
+    [/\.?source\.todo/, '.text.todo'],
+    [/\.?text\.html\.markdown/, '.source.gfm']
 ]
 
 meta_info = <<-EOF
@@ -251,11 +252,11 @@ ARGV.options do |opts|
         exit
     end
 
-    opts.on("--input=<file>", String, "Input file(s)") {
+    opts.on("-i", "--input=<file>", String, "Input file(s)") {
         |input| @input = input
     }
 
-    opts.on("--output=<file>", String, "Output file") {
+    opts.on("-o", "--output=<file>", String, "Output file") {
         |output| @output = output
     }
 
