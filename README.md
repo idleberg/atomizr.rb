@@ -37,6 +37,18 @@ As a shorthand to `ruby atomize [options]`, you can set `chmod +x atomize` and r
 
 See `./atomize --help` for details
 
+## Filters
+
+In the header of the script, you can define arrays for replacement operations. Filters can be defined for file-name and snippet title, prefix and body.
+
+```
+# replace characters in file-name
+@filename_filter =  [
+    [/[\x00\/\\:\*\?\"\$<>\|]/, "_"],
+    ["\t",  "-"]
+]
+```
+
 ## License
 
 The MIT License (MIT)
