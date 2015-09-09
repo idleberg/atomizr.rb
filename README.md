@@ -38,7 +38,7 @@ As a shorthand to `ruby atomize [options]`, you can set `chmod +x atomize` and r
 ./atomize --input=<file> --output=<file> --scope=text.html --split
 
 # Same as above, using shorthands
-./atomize -input <file> -o <file> -s text.html -S
+./atomize -i <file> -o <file> -s text.html -S
 ```
 
 See `./atomize --help` for details
