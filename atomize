@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-@version = "0.4.1"
+@version = "0.5.0"
 
 # require "builder"
 require "json"
@@ -76,7 +76,7 @@ end
 def get_scope(data, mode)
     scope = ""
 
-    if $scope == nil
+    if @scope == nil
         scope += "."
         if mode == 'xml'
             scope += data.xpath("//scope")[0].text.strip
@@ -86,10 +86,10 @@ def get_scope(data, mode)
         scope = filter_str(scope, @scope_filter)
         puts "Using default scope '"+scope+"'"
     else
-        if $scope[0] != "."
+        if @scope[0] != "."
             scope += "."
         end
-        scope += $scope
+        scope += @scope
         puts "Override scope using '"+scope+"'"
     end
 
@@ -100,8 +100,10 @@ def json_to_cson(json, many = false)
 
     scope = get_scope(json, 'json')
     
-    cson = "'"+scope+"':\n"
-    
+    if many == false
+        cson = "'"+scope+"':\n"
+    end 
+
     json["completions"].each do |line|
         trigger  = line["trigger"]
         contents = line["contents"]
@@ -111,24 +113,36 @@ def json_to_cson(json, many = false)
         prefix = filter_str(trigger, @prefix_filter)
         body   = filter_str(contents, @body_filter)
 
-        cson += "  '"+title+"':\n"
-        cson += "    'prefix': '"+prefix+"'\n"
-        cson += "    'body': '"+body+"'\n"
-    end
+        if many == true
+            cson = "'"+scope+"':\n"
+            cson += "  '"+title+"':\n"
+            cson += "    'prefix': '"+prefix+"'\n"
+            cson += "    'body': '"+body+"'\n"
 
-    if many == true
-        puts "Writing '#{file}.cson'"
-        File.open("./_output/"+file+".cson","w") do |f|
-            f.write(cson)
+            puts "Writing '#{file}.cson'"
+            File.open("_output/#{file}.cson","w") do |f|
+                f.write(cson)
+            end
+            @output_counter += 1
+        else
+            cson += "  '"+title+"':\n"
+            cson += "    'prefix': '"+prefix+"'\n"
+            cson += "    'body': '"+body+"'\n"
         end
     end
 
-    return cson
+    if many == false
+        return cson
+    end
 end
 
 def json_to_json(json, many = false)
 
     scope = get_scope(json, 'json')
+
+    if many == false
+        snippets = Hash.new
+    end
     
     json["completions"].each do |line|
         
@@ -140,24 +154,34 @@ def json_to_json(json, many = false)
         prefix = filter_str(trigger, @prefix_filter)
         body   = filter_str(contents, @body_filter)
 
-        # Create object
-        data = {
-            scope => {
-                title => {
+        if many == true
+            obj = {
+                scope => {
+                    title => {
+                        'prefix' => prefix,
+                        'body' => body
+                    }
+                }
+            }
+
+            puts "Writing '#{file}.json'"
+            File.open("_output/#{file}.json","w") do |f|
+              f.write(JSON.pretty_generate(obj))
+            end
+            @output_counter += 1
+        else
+            snippets[title] = {
                     'prefix' => prefix,
                     'body' => body
                 }
-            }
-        }
-
-        if many == true
-            puts "Writing '#{file}.json'"
-            File.open('_output/'+file+'.json',"w") do |f|
-              f.write(JSON.pretty_generate(data))
-            end
-        else
-            return file
         end
+    end
+
+    if many == false
+        obj = Hash.new
+        obj[scope] = snippets
+
+        return obj
     end
 
 end
@@ -235,10 +259,10 @@ end
 @input_counter  = 0
 @output_counter = 0
 
-$scope = nil
-$merge = false
-$split = false
-$array = []
+@scope = nil
+@merge = false
+@split = false
+@array = []
 
 args = ARGV.count
  
@@ -261,8 +285,8 @@ ARGV.options do |opts|
     }
 
     # opts.on("-m", "--merge", "merge results into single file") {
-    #     if $split != true
-    #         $merge = true
+    #     if @split != true
+    #         @merge = true
     #     else
     #         abort("Error: You can't merge AND split")
     #         # exit
@@ -270,8 +294,8 @@ ARGV.options do |opts|
     # }
 
     opts.on("-s", "--split", "splits result in single files") {
-        if $merge != true
-            $split = true
+        if @merge != true
+            @split = true
         else
             abort("Error: You can't split AND merge")
             # exit
@@ -279,7 +303,7 @@ ARGV.options do |opts|
     }
 
     opts.on("--scope=<scope>", String, "overwrite scope") {
-        |val| $scope = val
+        |val| @scope = val
     }
 
     opts.on_tail("-v", "--version", "show version") do
@@ -303,7 +327,7 @@ if  (@input.end_with? ".sublime-completions") || (@input.end_with? ".json")
 
         json = read_json(item)
 
-        if $split == true
+        if @split == true
             if @output == "cson"
                 json_to_cson(json, true)
             else @output == "json"
@@ -311,7 +335,7 @@ if  (@input.end_with? ".sublime-completions") || (@input.end_with? ".json")
             end
         else
             if (@output.end_with? ".cson") || (@output == "cson")
-                data = json_to_cson(json)
+                data = json_to_cson(json, false)
                 output = get_outname('cson', item)
                 
                 puts "Writing '#{output}'"
@@ -343,7 +367,7 @@ elsif (@input.end_with? ".sublime-snippet") || (@input.end_with? ".xml")
 
         xml = read_xml(item)
 
-        # if $merge == true
+        # if @merge == true
         #     # if @output == "cson"
         #     #     json_to_cson(json, true)
         #     # else @output == "json"
@@ -389,16 +413,16 @@ elsif (@input.end_with? ".sublime-snippet") || (@input.end_with? ".xml")
                 puts "Writing '#{output}'"
                 File.open("./_output/"+output,"w") do |f|
                     f.write(JSON.pretty_generate(json))
-                end         
+                end
+                @output_counter += 1
             end
         end
 
-
         @input_counter += 1
-        @output_counter += 1
+        
     # end
 
-    # if $merge == true
+    # if @merge == true
     #     output = @output
 
     #     puts "Writing '#{output}'"
@@ -412,9 +436,9 @@ end
 
 # Game Over
 if @input_counter == 0
-    puts "\nNo files converted"
+    puts "No files converted"
 elsif @input_counter == 1
-     puts "\nConverted #{@input_counter} file"
+     puts "Read #{@input_counter} file, written #{@output_counter}"
 else
-    puts "\nConverted #{@input_counter} files"
+    puts "Read #{@input_counter} files, written #{@output_counter}"
 end
