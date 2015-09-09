@@ -321,6 +321,12 @@ if args < 1
     abort("\nError: no arguments passed")
 end
 
+# Create output directory, if necessary
+if !Dir.exists?("_output")
+    puts "\nCreate output directory"
+    Dir.mkdir("_output")
+end
+
 if  (@input.end_with? ".sublime-completions") || (@input.end_with? ".json")
 
     Dir.glob(@input) do |item|
