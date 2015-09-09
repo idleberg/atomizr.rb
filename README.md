@@ -47,7 +47,7 @@ See `./atomize --help` for details
 
 In the header of the script, you can define arrays for replacement operations. Filters can be defined for file-name and snippet title, prefix and body.
 
-```
+```bash
 # replace characters in file-name
 @filename_filter =  [
     [/[\x00\/\\:\*\?\"\$<>\|]/, "_"],
