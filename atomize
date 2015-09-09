@@ -1,24 +1,39 @@
 #!/usr/bin/env ruby
 
-$version = "0.3.1"
+@version = "0.4.0"
 
 # require "builder"
 require "json"
 require "nokogiri"
 require "optparse"
 
-# Snippets are created based on trigger-names. Here you define which characters
-# you want to filter before creating a snippet file
-trigger_filter = []
-
-# Define which characters you want to substitute in the snippet
-contents_filter = []
-
-$input_counter  = 0
-$output_counter = 0
+# Arrays of filters to replace characters in strings
+@filename_filter =  [
+    [/[\x00\/\\:\*\?\"\$<>\|]/, "_"],
+    ["\t",  "-"]
+]
+@title_filter = [
+    # [find, replace]
+]
+@prefix_filter = [
+    [/[\x00\/\\:\*\?\"\$<>\|]/, '']
+]
+@body_filter = [
+    # [find, replace]
+]
+@scope_filter = [
+    # https://gist.github.com/idleberg/fca633438329cc5ae317
+    ['source.c++', 'source.cpp'],
+    ['source.java-props', 'source.java-properties'],
+    ['source.objc++', 'source.objcpp'],
+    ['source.php', 'text.html.php'],
+    ['source.scss', 'source.css.scss'],
+    ['source.todo', 'text.todo'],
+    ['text.html.markdown', 'source.gfm']
+]
 
 meta_info = <<-EOF
-\natomize-snippets, version #{$version}
+\natomize-snippets, version #{@version}
 The MIT License
 Copyright (c) 2015 Jan T. Sott
 EOF
@@ -43,15 +58,15 @@ def read_json(item)
 end
 
 def get_outname(type, item)
-    if $output == type
-        if ($input.start_with? "*.") || (($input.end_with? ".*"))
+    if @output == type
+        if (@input.start_with? "*.") || ((@input.end_with? ".*"))
             file = item
         else
-            file = $input
+            file = @input
         end
         output = File.basename(file, ".*")+"."+type
     else
-        output = $output
+        output = @output
     end
 
     return output
@@ -67,6 +82,7 @@ def get_scope(data, mode)
         elsif mode == 'json'
             scope += data["scope"]
         end
+        scope = filter_str(scope, @scope_filter)
         puts "Using default scope '"+scope+"'"
     else
         if $scope[0] != "."
@@ -86,17 +102,22 @@ def json_to_cson(json, many = false)
     cson = "'"+scope+"':\n"
     
     json["completions"].each do |line|
-        trigger = line["trigger"]
+        trigger  = line["trigger"]
         contents = line["contents"]
 
-        cson += "  '"+trigger+"':\n"
-        cson += "    'prefix': '"+trigger+"'\n"
-        cson += "    'body': '"+contents+"'\n"
+        file   = filter_str(trigger, @filename_filter)
+        title  = filter_str(trigger, @title_filter)
+        prefix = filter_str(trigger, @prefix_filter)
+        body   = filter_str(contents, @body_filter)
+
+        cson += "  '"+title+"':\n"
+        cson += "    'prefix': '"+prefix+"'\n"
+        cson += "    'body': '"+body+"'\n"
     end
 
     if many == true
-        puts "Writing '#{trigger}.cson'"
-        File.open("./_output/"+trigger+".cson","w") do |f|
+        puts "Writing '#{file}.cson'"
+        File.open("./_output/"+file+".cson","w") do |f|
             f.write(cson)
         end
     end
@@ -110,23 +131,28 @@ def json_to_json(json, many = false)
     
     json["completions"].each do |line|
         
-        trigger = line["trigger"]
+        trigger  = line["trigger"]
         contents = line["contents"]
 
+        file   = filter_str(trigger, @filename_filter)
+        title  = filter_str(trigger, @title_filter)
+        prefix = filter_str(trigger, @prefix_filter)
+        body   = filter_str(contents, @body_filter)
+
         # Create object
-        file = {
+        data = {
             scope => {
-                trigger => {
-                    'prefix' => trigger,
-                    'body' => contents
+                title => {
+                    'prefix' => prefix,
+                    'body' => body
                 }
             }
         }
 
         if many == true
-            puts "Writing '#{trigger}.json'"
-            File.open('_output/'+trigger+'.json',"w") do |f|
-              f.write(JSON.pretty_generate(file))
+            puts "Writing '#{file}.json'"
+            File.open('_output/'+file+'.json',"w") do |f|
+              f.write(JSON.pretty_generate(data))
             end
         else
             return file
@@ -143,16 +169,22 @@ def xml_to_cson(xml)
     
     trigger = xml.xpath("//tabTrigger")[0].text.strip
 
+    file   = filter_str(trigger, @filename_filter)
+    title  = filter_str(trigger, @title_filter)
+    prefix = filter_str(trigger, @prefix_filter)
+
     xml.xpath("//content").each do |node|
         contents = node.text.strip
-        # contents = contents_s.gsub("'", nil)
-        cson += "  '"+trigger+"':\n"
-        cson += "    'prefix': '"+trigger+"'\n"
-        if contents.lines.count <= 1
-            cson += "    'body': '"+contents+"'\n"
+
+        body   = filter_str(contents, @body_filter)
+
+        cson += "  '"+title+"':\n"
+        cson += "    'prefix': '"+prefix+"'\n"
+        if body.lines.count <= 1
+            cson += "    'body': '"+body+"'\n"
         else
             cson += "    'body': \"\"\"\n"
-            contents.each_line do |line|
+            body.each_line do |line|
                 cson += "      "+line
             end
             cson +="\n    \"\"\"\n"
@@ -168,13 +200,18 @@ def xml_to_json(xml)
 
     trigger = xml.xpath("//tabTrigger")[0].text.strip
     contents = xml.xpath("//content")[0].text.strip
+
+    file   = filter_str(trigger, @filename_filter)
+    title  = filter_str(trigger, @title_filter)
+    prefix = filter_str(trigger, @prefix_filter)
+    body   = filter_str(contents, @body_filter)
     
     # Create object
     json = {
         scope => {
-            trigger => {
-                :prefix => trigger,
-                :body => contents
+            title => {
+                :prefix => prefix,
+                :body => body
             }
         }
     }
@@ -183,13 +220,20 @@ def xml_to_json(xml)
 end
 
 def filter_str(input, filter)
-    filter.each do |needle, replacement|
-        input = input.to_s.gsub(needle, replacement)
+
+    if filter.any?
+        filter.each do |needle, replacement|
+            input = input.to_s.gsub(needle, replacement)
+        end
     end
+
     return input
 end
 
 # default options
+@input_counter  = 0
+@output_counter = 0
+
 $scope = nil
 $merge = false
 $split = false
@@ -208,11 +252,11 @@ ARGV.options do |opts|
     end
 
     opts.on("--input=<file>", String, "Input file(s)") {
-        |input| $input = input
+        |input| @input = input
     }
 
     opts.on("--output=<file>", String, "Output file") {
-        |output| $output = output
+        |output| @output = output
     }
 
     # opts.on("-m", "--merge", "merge results into single file") {
@@ -238,7 +282,7 @@ ARGV.options do |opts|
     }
 
     opts.on_tail("-v", "--version", "show version") do
-        puts $version
+        puts @version
         exit
     end
 
@@ -252,58 +296,59 @@ if args < 1
     abort("\nError: no arguments passed")
 end
 
-if  ($input.end_with? ".sublime-completions") || ($input.end_with? ".json")
+if  (@input.end_with? ".sublime-completions") || (@input.end_with? ".json")
 
-    Dir.glob($input) do |item|
+    Dir.glob(@input) do |item|
+
         json = read_json(item)
 
         if $split == true
-            if $output == "cson"
+            if @output == "cson"
                 json_to_cson(json, true)
-            else $output == "json"
+            else @output == "json"
                 json_to_json(json, true)
             end
         else
-            if ($output.end_with? ".cson") || ($output == "cson")
+            if (@output.end_with? ".cson") || (@output == "cson")
                 data = json_to_cson(json)
                 output = get_outname('cson', item)
                 
                 puts "Writing '#{output}'"
-                File.open("./_output/"+output,"w") do |f|
+                File.open("./_output/"+output, "w") do |f|
                     f.write(data)
                 end
 
-            elsif ($output.end_with? ".json") || ($output == "json")
-                data = json_to_json(json)
+            elsif (@output.end_with? ".json") || (@output == "json")
+                data = json_to_json(json, false)
                 output = get_outname('json', item)
 
                 puts "Writing '#{output}'"
-                File.open('_output/'+output,"w") do |f|
-                  f.write(JSON.pretty_generate(data))
+                File.open("_output/#{output}", "w") do |f|
+                    f.write(JSON.pretty_generate(data))
                 end
             end
         end
 
-        $input_counter += 1
-        $output_counter += 1
+        @input_counter += 1
+        @output_counter += 1
     end
 
-elsif ($input.end_with? ".sublime-snippet") || ($input.end_with? ".xml")
+elsif (@input.end_with? ".sublime-snippet") || (@input.end_with? ".xml")
 
     # scope = nil
     # completions = Array.new
 
-    Dir.glob($input) do |item|
+    Dir.glob(@input) do |item|
 
         xml = read_xml(item)
 
         # if $merge == true
-        #     # if $output == "cson"
+        #     # if @output == "cson"
         #     #     json_to_cson(json, true)
-        #     # else $output == "json"
+        #     # else @output == "json"
         #     #     json_to_json(json, true)
         #     # end
-        #     if $input_counter == 0
+        #     if @input_counter == 0
         #         scope = get_scope(xml, 'xml')
         #         completions << scope
         #     end
@@ -317,7 +362,7 @@ elsif ($input.end_with? ".sublime-snippet") || ($input.end_with? ".xml")
         #         }
         #     }
         # else
-            if ($output.end_with? ".cson") || ($output == "cson")
+            if (@output.end_with? ".cson") || (@output == "cson")
                 cson = xml_to_cson(xml)
                 output = get_outname('cson', item)
 
@@ -326,15 +371,15 @@ elsif ($input.end_with? ".sublime-snippet") || ($input.end_with? ".xml")
                     f.write(cson)
                 end
 
-            elsif ($output.end_with? ".json") || ($output == "json")
+            elsif (@output.end_with? ".json") || (@output == "json")
                 json = xml_to_json(xml)
                 
                 # match output file to input basename
-                if $output == "json"
-                    if ($input.start_with? "*.") || (($input.end_with? ".*"))
+                if @output == "json"
+                    if (@input.start_with? "*.") || ((@input.end_with? ".*"))
                         file = item
                     else
-                        file = $input
+                        file = @input
                     end
                     output = File.basename(file, ".*")+".json"
                 end
@@ -348,12 +393,12 @@ elsif ($input.end_with? ".sublime-snippet") || ($input.end_with? ".xml")
         end
 
 
-        $input_counter += 1
-        $output_counter += 1
+        @input_counter += 1
+        @output_counter += 1
     # end
 
     # if $merge == true
-    #     output = $output
+    #     output = @output
 
     #     puts "Writing '#{output}'"
     #     File.open("./_output/"+output,"w") do |f|
@@ -361,14 +406,14 @@ elsif ($input.end_with? ".sublime-snippet") || ($input.end_with? ".xml")
     #     end   
     # end
 else
-    puts "\nError: Unknown file passed (#{$input})"
+    puts "\nError: Unknown file passed (#{@input})"
 end
 
 # Game Over
-if $input_counter == 0
+if @input_counter == 0
     puts "\nNo files converted"
-elsif $input_counter == 1
-     puts "\nConverted #{$input_counter} file"
+elsif @input_counter == 1
+     puts "\nConverted #{@input_counter} file"
 else
-    puts "\nConverted #{$input_counter} files"
+    puts "\nConverted #{@input_counter} files"
 end
