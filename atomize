@@ -1,8 +1,7 @@
 #!/usr/bin/env ruby
 
-@version = "0.5.1"
+@version = "0.5.2"
 
-# require "builder"
 require "json"
 require "nokogiri"
 require "optparse"
@@ -284,15 +283,6 @@ ARGV.options do |opts|
         |output| @output = output
     }
 
-    # opts.on("-m", "--merge", "merge results into single file") {
-    #     if @split != true
-    #         @merge = true
-    #     else
-    #         abort("Error: You can't merge AND split")
-    #         # exit
-    #     end
-    # }
-
     opts.on("-s", "--scope=<scope>", String, "overwrite scope") {
         |val| @scope = val
     }
@@ -302,7 +292,6 @@ ARGV.options do |opts|
             @split = true
         else
             abort("Error: You can't split AND merge")
-            # exit
         end
     }
 
@@ -366,33 +355,10 @@ if  (@input.end_with? ".sublime-completions") || (@input.end_with? ".json")
 
 elsif (@input.end_with? ".sublime-snippet") || (@input.end_with? ".xml")
 
-    # scope = nil
-    # completions = Array.new
-
     Dir.glob(@input) do |item|
 
         xml = read_xml(item)
 
-        # if @merge == true
-        #     # if @output == "cson"
-        #     #     json_to_cson(json, true)
-        #     # else @output == "json"
-        #     #     json_to_json(json, true)
-        #     # end
-        #     if @input_counter == 0
-        #         scope = get_scope(xml, 'xml')
-        #         completions << scope
-        #     end
-        #     trigger = xml.xpath("//tabTrigger")[0].text.strip
-        #     contents = xml.xpath("//content")[0].text.strip
-
-        #     completions << {
-        #         trigger => {
-        #             :prefix => trigger,
-        #             :body => contents
-        #         }
-        #     }
-        # else
             if (@output.end_with? ".cson") || (@output == "cson")
                 cson = xml_to_cson(xml)
                 output = get_outname('cson', item)
@@ -426,16 +392,6 @@ elsif (@input.end_with? ".sublime-snippet") || (@input.end_with? ".xml")
 
         @input_counter += 1
         
-    # end
-
-    # if @merge == true
-    #     output = @output
-
-    #     puts "Writing '#{output}'"
-    #     File.open("./_output/"+output,"w") do |f|
-    #         f.write(JSON.pretty_generate(completions))
-    #     end   
-    # end
 else
     puts "\nError: Unknown file passed (#{@input})"
 end
