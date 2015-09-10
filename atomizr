@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-@version = "0.5.2"
+@version = "0.6.0"
 
 require "json"
 require "nokogiri"
@@ -33,28 +33,192 @@ require "optparse"
 ]
 
 meta_info = <<-EOF
-\natomize-snippets, version #{@version}
+\natomizr, version #{@version}
 The MIT License
 Copyright (c) 2015 Jan T. Sott
 EOF
 
 # Methods
 def read_xml(item)
+
     puts "\nReading snippet file '#{item}'"
 
+    # read file, parse data
     file = File.read(item)
-    xml = Nokogiri::XML(file)
+    data = Nokogiri::XML(file)
 
-    return xml
+    # get scope
+    @data['scope'] = get_scope( data.xpath("//scope")[0].text.strip )
+
+    trigger = data.xpath("//tabTrigger")[0].text.strip
+
+    data.xpath("//content").each do |node|
+
+        title  = filter_str(trigger, @title_filter)
+        prefix = filter_str(trigger, @prefix_filter)
+        body   = filter_str(node.text.strip, @body_filter)
+
+        if @completions.has_key?(title)
+            abort("Error: duplicate trigger #{title} in #{item}")
+        end
+
+        @completions[title] = {
+            :prefix => prefix,
+            :body => body
+        }
+    end
+
+    @data['completions'] = @completions
+
+    return @data
 end
 
 def read_json(item)
+
     puts "\nReading completion file '#{item}'"
 
+    # read file, parse data
     file = File.read(item)
-    json = JSON.load(file)
+    data = JSON.load(file)
 
-    return json
+    # get scope
+    @data['scope'] = get_scope( data["scope"] )
+
+    data["completions"].each do |line|
+        trigger = line["trigger"]
+        contents = line["contents"]
+
+        title  = filter_str(trigger, @title_filter)
+        prefix = filter_str(trigger, @prefix_filter)
+        body   = filter_str(contents, @body_filter)
+
+        if @completions.has_key?(title)
+            abort("Error: duplicate trigger #{title} in #{item}")
+        end
+
+        @completions[title] = {
+            :prefix => prefix,
+            :body => body
+        }
+    end
+
+     @data['completions'] = @completions
+
+    return @data
+end
+
+def write_json(data, item, many = false)
+
+    puts "many="+many.to_s
+
+    if many == false
+
+        json = {
+            data['scope'] => data['completions']
+        }
+
+        file = get_outname('json', item)
+
+        puts "Writing '#{file}'"
+        File.open("_output/#{file}","w") do |f|
+          f.write(JSON.pretty_generate(json))
+        end
+        @output_counter += 1
+
+    elsif many == true
+
+        scope = data['scope']
+
+        data['completions'].each do |item|
+
+
+            file = filter_str(item[1][:prefix], @filename_filter)
+
+            json = {
+                data['scope'] => {
+                    item[0] => {
+                        'prefix' => item[1][:prefix],
+                        'body' => item[1][:body]
+                    }
+                }
+            }
+
+            puts "Writing '#{file}.json'"
+            File.open("_output/#{file}.json","w") do |f|
+              f.write(JSON.pretty_generate(json))
+            end
+            @output_counter += 1
+        end
+    end
+end
+
+def write_cson(data, item, many = false)
+
+    if many == false
+
+        cson = "'"+data['scope']+"':\n"
+
+        data['completions'].each do |item|
+
+            title = item[0]
+            prefix = item[1][:prefix]
+            body = item[1][:body]
+
+            cson += "  '"+title+"':\n"
+            cson += "    'prefix': '"+prefix+"'\n"
+            if body.lines.count <= 1
+                cson += "    'body': '"+body+"'\n"
+            else
+                cson += "    'body': \"\"\"\n"
+                body.each_line do |line|
+                    cson += "      "+line
+                end
+                cson +="\n    \"\"\"\n"
+            end
+        end
+
+        file = get_outname('cson', item)
+
+        puts "Writing '#{file}'"
+        File.open("_output/#{file}","w") do |f|
+          f.write(cson)
+        end
+        @output_counter += 1
+
+    elsif many == true
+
+        scope = data['scope']
+
+
+        data['completions'].each do |item|
+
+            cson = "'"+scope+"':\n"
+            title = item[0]
+            prefix = item[1][:prefix]
+            body = item[1][:body]
+
+            file = filter_str(prefix, @filename_filter)
+
+            cson += "  '"+title+"':\n"
+            cson += "    'prefix': '"+prefix+"'\n"
+            if body.lines.count <= 1
+                cson += "    'body': '"+body+"'\n"
+            else
+                cson += "    'body': \"\"\"\n"
+                body.each_line do |line|
+                    cson += "      "+line
+                end
+                cson +="\n    \"\"\"\n"
+            end
+
+            puts "Writing '#{file}.cson'"
+            File.open("_output/#{file}.cson","w") do |f|
+              f.write(cson)
+            end
+            @output_counter += 1
+        end
+
+    end
 end
 
 def get_outname(type, item)
@@ -72,175 +236,22 @@ def get_outname(type, item)
     return output
 end
 
-def get_scope(data, mode)
-    scope = ""
+def get_scope(scope)
 
     if @scope == nil
-        scope += "."
-        if mode == 'xml'
-            scope += data.xpath("//scope")[0].text.strip
-        elsif mode == 'json'
-            scope += data["scope"]
-        end
         scope = filter_str(scope, @scope_filter)
         puts "Using default scope '"+scope+"'"
     else
         if @scope[0] != "."
-            scope += "."
+            scope = "."+ @scope
+        else
+            scope = @scope
         end
-        scope += @scope
+        scope = filter_str(scope, @scope_filter)
         puts "Override scope using '"+scope+"'"
     end
 
     return scope
-end
-
-def json_to_cson(json, many = false)
-
-    scope = get_scope(json, 'json')
-    
-    if many == false
-        cson = "'"+scope+"':\n"
-    end 
-
-    json["completions"].each do |line|
-        trigger  = line["trigger"]
-        contents = line["contents"]
-
-        file   = filter_str(trigger, @filename_filter)
-        title  = filter_str(trigger, @title_filter)
-        prefix = filter_str(trigger, @prefix_filter)
-        body   = filter_str(contents, @body_filter)
-
-        if many == true
-            cson = "'"+scope+"':\n"
-            cson += "  '"+title+"':\n"
-            cson += "    'prefix': '"+prefix+"'\n"
-            cson += "    'body': '"+body+"'\n"
-
-            puts "Writing '#{file}.cson'"
-            File.open("_output/#{file}.cson","w") do |f|
-                f.write(cson)
-            end
-            @output_counter += 1
-        else
-            cson += "  '"+title+"':\n"
-            cson += "    'prefix': '"+prefix+"'\n"
-            cson += "    'body': '"+body+"'\n"
-        end
-    end
-
-    if many == false
-        return cson
-    end
-end
-
-def json_to_json(json, many = false)
-
-    scope = get_scope(json, 'json')
-
-    if many == false
-        snippets = Hash.new
-    end
-    
-    json["completions"].each do |line|
-        
-        trigger  = line["trigger"]
-        contents = line["contents"]
-
-        file   = filter_str(trigger, @filename_filter)
-        title  = filter_str(trigger, @title_filter)
-        prefix = filter_str(trigger, @prefix_filter)
-        body   = filter_str(contents, @body_filter)
-
-        if many == true
-            obj = {
-                scope => {
-                    title => {
-                        'prefix' => prefix,
-                        'body' => body
-                    }
-                }
-            }
-
-            puts "Writing '#{file}.json'"
-            File.open("_output/#{file}.json","w") do |f|
-              f.write(JSON.pretty_generate(obj))
-            end
-            @output_counter += 1
-        else
-            snippets[title] = {
-                    'prefix' => prefix,
-                    'body' => body
-                }
-        end
-    end
-
-    if many == false
-        obj = Hash.new
-        obj[scope] = snippets
-
-        return obj
-    end
-
-end
-
-def xml_to_cson(xml)
-    
-    scope = get_scope(xml, 'xml')
-
-    cson = "'"+scope+"':\n"
-    
-    trigger = xml.xpath("//tabTrigger")[0].text.strip
-
-    file   = filter_str(trigger, @filename_filter)
-    title  = filter_str(trigger, @title_filter)
-    prefix = filter_str(trigger, @prefix_filter)
-
-    xml.xpath("//content").each do |node|
-        contents = node.text.strip
-
-        body   = filter_str(contents, @body_filter)
-
-        cson += "  '"+title+"':\n"
-        cson += "    'prefix': '"+prefix+"'\n"
-        if body.lines.count <= 1
-            cson += "    'body': '"+body+"'\n"
-        else
-            cson += "    'body': \"\"\"\n"
-            body.each_line do |line|
-                cson += "      "+line
-            end
-            cson +="\n    \"\"\"\n"
-        end
-    end
-
-    return cson
-end
-
-def xml_to_json(xml)
-
-    scope = get_scope(xml, 'xml')
-
-    trigger = xml.xpath("//tabTrigger")[0].text.strip
-    contents = xml.xpath("//content")[0].text.strip
-
-    file   = filter_str(trigger, @filename_filter)
-    title  = filter_str(trigger, @title_filter)
-    prefix = filter_str(trigger, @prefix_filter)
-    body   = filter_str(contents, @body_filter)
-    
-    # Create object
-    json = {
-        scope => {
-            title => {
-                :prefix => prefix,
-                :body => body
-            }
-        }
-    }
-
-    return json
 end
 
 def filter_str(input, filter)
@@ -267,7 +278,7 @@ args = ARGV.count
  
 # parse arguments
 ARGV.options do |opts|
-    opts.banner = "\nUsage: atomize.rb [options]"
+    opts.banner = "\nUsage: atomizr [options]"
 
     opts.on("-h", "--help", "prints this help") do
         puts meta_info
@@ -287,12 +298,8 @@ ARGV.options do |opts|
         |val| @scope = val
     }
 
-    opts.on("-S", "--split", "splits result in single files") {
-        if @merge != true
-            @split = true
-        else
-            abort("Error: You can't split AND merge")
-        end
+    opts.on("-S", "--split", "splits completions into single files") {
+        @split = true
     }
 
     opts.on_tail("-v", "--version", "show version") do
@@ -316,82 +323,42 @@ if !Dir.exists?("_output")
     Dir.mkdir("_output")
 end
 
-if  (@input.end_with? ".sublime-completions") || (@input.end_with? ".json")
+if (@input.end_with? ".sublime-completions") || (@input.end_with? ".json")
 
     Dir.glob(@input) do |item|
 
-        json = read_json(item)
+        @data = Hash.new
+        @completions = Hash.new
 
-        if @split == true
-            if @output == "cson"
-                json_to_cson(json, true)
-            else @output == "json"
-                json_to_json(json, true)
-            end
+        @data = read_json(item)
+
+        if @output == "json"
+            write_json(@data, item, @split)
         else
-            if (@output.end_with? ".cson") || (@output == "cson")
-                data = json_to_cson(json, false)
-                output = get_outname('cson', item)
-                
-                puts "Writing '#{output}'"
-                File.open("./_output/"+output, "w") do |f|
-                    f.write(data)
-                end
-
-            elsif (@output.end_with? ".json") || (@output == "json")
-                data = json_to_json(json, false)
-                output = get_outname('json', item)
-
-                puts "Writing '#{output}'"
-                File.open("_output/#{output}", "w") do |f|
-                    f.write(JSON.pretty_generate(data))
-                end
-            end
+            write_cson(@data, item, @split)
         end
 
         @input_counter += 1
-        @output_counter += 1
     end
 
 elsif (@input.end_with? ".sublime-snippet") || (@input.end_with? ".xml")
 
     Dir.glob(@input) do |item|
 
-        xml = read_xml(item)
+        @data = Hash.new
+        @completions = Hash.new
 
-            if (@output.end_with? ".cson") || (@output == "cson")
-                cson = xml_to_cson(xml)
-                output = get_outname('cson', item)
+        @data = read_xml(item)
 
-                puts "Writing '#{output}'"
-                File.open("./_output/"+output,"w") do |f|
-                    f.write(cson)
-                end
-
-            elsif (@output.end_with? ".json") || (@output == "json")
-                json = xml_to_json(xml)
-                
-                # match output file to input basename
-                if @output == "json"
-                    if (@input.start_with? "*.") || ((@input.end_with? ".*"))
-                        file = item
-                    else
-                        file = @input
-                    end
-                    output = File.basename(file, ".*")+".json"
-                end
-
-
-                puts "Writing '#{output}'"
-                File.open("./_output/"+output,"w") do |f|
-                    f.write(JSON.pretty_generate(json))
-                end
-                @output_counter += 1
-            end
+        if @output == "json"
+            write_json(@data, item, @split)
+        else
+            write_cson(@data, item, @split)
         end
 
         @input_counter += 1
-        
+    end
+
 else
     puts "\nError: Unknown file passed (#{@input})"
 end
@@ -400,7 +367,7 @@ end
 if @input_counter == 0
     puts "No files converted"
 elsif @input_counter == 1
-     puts "Read #{@input_counter} file, written #{@output_counter}"
+     puts "\nRead #{@input_counter} file, written #{@output_counter}"
 else
-    puts "Read #{@input_counter} files, written #{@output_counter}"
+    puts "\nRead #{@input_counter} files, written #{@output_counter}"
 end
