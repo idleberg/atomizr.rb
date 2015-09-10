@@ -33,7 +33,7 @@ require "optparse"
 ]
 
 meta_info = <<-EOF
-\natomizr, version #{@version}
+\nAtomizr, version #{@version}
 The MIT License
 Copyright (c) 2015 Jan T. Sott
 EOF
@@ -120,8 +120,6 @@ def write_data(item)
 end
 
 def write_json(data, file, many = false)
-
-    puts "many="+many.to_s
 
     if many == false
 
@@ -401,7 +399,7 @@ end
 if @input_counter == 0
     puts "No files converted"
 elsif @input_counter == 1
-     puts "\nRead #{@input_counter} file, written #{@output_counter}"
+     puts "\nAtomized #{@input_counter} file, created #{@output_counter}"
 else
-    puts "\nRead #{@input_counter} files, written #{@output_counter}"
+    puts "\nAtomized #{@input_counter} files, created #{@output_counter}"
 end
