@@ -1,47 +1,47 @@
-# Atomize Snippets
+# Atomizr
 
 [![The MIT License](https://img.shields.io/badge/license-MIT-orange.svg?style=flat-square)](http://opensource.org/licenses/MIT)
-[![GitHub release](https://img.shields.io/github/release/idleberg/atomize-snippets.svg?style=flat-square)](https://github.com/idleberg/atomize-snippets/releases)
+[![GitHub release](https://img.shields.io/github/release/idleberg/atomizr.svg?style=flat-square)](https://github.com/idleberg/atomizr/releases)
 
 A Ruby script to convert [Sublime Text](http://www.sublimetext.com/) snippets and completions into [Atom](http://atom.io) snippets
 
 ## Installation
 
-1. Clone the repository `git clone https://github.com/idleberg/atomize-snippets.git`
-2. Change directory `cd atomize-snippets.git`
+1. Clone the repository `git clone https://github.com/idleberg/atomizr.git`
+2. Change directory `cd atomizr.git`
 3. Install Gems using [Bundler](http://bundler.io/) `bundle install`
 
 ## Usage
 
-As a shorthand to `ruby atomize [options]`, you can set `chmod +x atomize` and run the script as follows:
+As a shorthand to `ruby atomizr [options]`, you can set `chmod +x atomizr` and run the script as follows:
 
 ```bash
 # Convert snippet or completions
-./atomize --input=<file> --output=<file> [options]
+./atomizr --input=<file> --output=<file> [options]
 
 # Convert file into CSON
-./atomize --input=<file> --output=<file>.cson
+./atomizr --input=<file> --output=<file>.cson
 
 # Convert file into JSON
-./atomize --input=<file> --output=<file>.json
+./atomizr --input=<file> --output=<file>.json
 
 # Convert completions, save as multiple CSON files
-./atomize --input=<file>.sublime-completions --output=cson --split
+./atomizr --input=<file>.sublime-completions --output=cson --split
 
 # Use quotes to convert multiple files at once
-./atomize --input="snippets/*" --output=cson
+./atomizr --input="snippets/*" --output=cson
 
 # Override scope
-./atomize --input=<file> --output=<file> --scope=text.html
+./atomizr --input=<file> --output=<file> --scope=text.html
 
 # Example using every possible argument
-./atomize --input=<file> --output=<file> --scope=text.html --split
+./atomizr --input=<file> --output=<file> --scope=text.html --split
 
 # Same as above, using shorthands
-./atomize -i <file> -o <file> -s text.html -S
+./atomizr -i <file> -o <file> -s text.html -S
 ```
 
-See `./atomize --help` for details
+See `./atomizr --help` for details
 
 ## Filters
 
@@ -69,4 +69,4 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 ## Donate
 
-You are welcome support this project using [Flattr](https://flattr.com/submit/auto?user_id=idleberg&url=https://github.com/idleberg/atomize-snippets) or Bitcoin `17CXJuPsmhuTzFV2k4RKYwpEHVjskJktRd`
+You are welcome support this project using [Flattr](https://flattr.com/submit/auto?user_id=idleberg&url=https://github.com/idleberg/atomizr) or Bitcoin `17CXJuPsmhuTzFV2k4RKYwpEHVjskJktRd`
