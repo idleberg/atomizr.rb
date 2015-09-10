@@ -31,6 +31,9 @@ As a shorthand to `ruby atomizr [options]`, you can set `chmod +x atomizr` and r
 # Use quotes to convert multiple files at once
 ./atomizr --input="snippets/*" --output=cson
 
+# Merge converted snippets into single file
+./atomizr --input="snippets/*" --output=<file>.cson --merge
+
 # Override scope
 ./atomizr --input=<file> --output=<file> --scope=text.html
 

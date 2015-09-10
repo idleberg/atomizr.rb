@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-@version = "0.6.0"
+@version = "0.7.0"
 
 require "json"
 require "nokogiri"
@@ -59,7 +59,7 @@ def read_xml(item)
         body   = filter_str(node.text.strip, @body_filter)
 
         if @completions.has_key?(title)
-            abort("Error: duplicate trigger #{title} in #{item}")
+            abort("Error: duplicate trigger #{title} in #{item}. Triggers must be unique.")
         end
 
         @completions[title] = {
@@ -107,7 +107,19 @@ def read_json(item)
     return @data
 end
 
-def write_json(data, item, many = false)
+def write_data(item)
+    if @output == "json"
+        file = get_outname('json', item)
+        write_json(@data, file, @split)
+    else
+        file = get_outname('cson', item)
+        write_cson(@data, file, @split)
+    end
+
+    @input_counter += 1
+end
+
+def write_json(data, file, many = false)
 
     puts "many="+many.to_s
 
@@ -116,8 +128,6 @@ def write_json(data, item, many = false)
         json = {
             data['scope'] => data['completions']
         }
-
-        file = get_outname('json', item)
 
         puts "Writing '#{file}'"
         File.open("_output/#{file}","w") do |f|
@@ -189,7 +199,6 @@ def write_cson(data, item, many = false)
 
         scope = data['scope']
 
-
         data['completions'].each do |item|
 
             cson = "'"+scope+"':\n"
@@ -217,7 +226,6 @@ def write_cson(data, item, many = false)
             end
             @output_counter += 1
         end
-
     end
 end
 
@@ -265,6 +273,11 @@ def filter_str(input, filter)
     return input
 end
 
+def init_hashes()
+    @data = Hash.new
+    @completions = Hash.new
+end
+
 # default options
 @input_counter  = 0
 @output_counter = 0
@@ -298,8 +311,20 @@ ARGV.options do |opts|
         |val| @scope = val
     }
 
-    opts.on("-S", "--split", "splits completions into single files") {
-        @split = true
+    opts.on("-S", "--split", "split result into multiple files") {
+        if @merge != true       
+            @split = true        
+        else     
+            abort("Error: You can't split AND merge")
+        end
+    }
+
+    opts.on("-M", "--merge", "merge result into single file") {
+        if @split != true       
+            @merge = true        
+        else     
+            abort("Error: You can't merge AND split")       
+        end
     }
 
     opts.on_tail("-v", "--version", "show version") do
@@ -325,40 +350,49 @@ end
 
 if (@input.end_with? ".sublime-completions") || (@input.end_with? ".json")
 
+    if @merge == true
+        init_hashes()
+    end
+
     Dir.glob(@input) do |item|
 
-        @data = Hash.new
-        @completions = Hash.new
+        if @merge == false
+            init_hashes()
+        end
 
         @data = read_json(item)
 
-        if @output == "json"
-            write_json(@data, item, @split)
-        else
-            write_cson(@data, item, @split)
+        if @merge == false
+            write_data(item)
         end
+    end
 
-        @input_counter += 1
+    if @merge == true
+        write_data(@output)
     end
 
 elsif (@input.end_with? ".sublime-snippet") || (@input.end_with? ".xml")
 
+    if @merge == true
+        init_hashes()
+    end
+
     Dir.glob(@input) do |item|
 
-        @data = Hash.new
-        @completions = Hash.new
+        if @merge == false
+            init_hashes()
+        end
 
         @data = read_xml(item)
 
-        if @output == "json"
-            write_json(@data, item, @split)
-        else
-            write_cson(@data, item, @split)
+        if @merge == false
+            write_data(item)
         end
-
-        @input_counter += 1
     end
 
+    if @merge == true
+        write_data(@output)
+    end
 else
     puts "\nError: Unknown file passed (#{@input})"
 end
