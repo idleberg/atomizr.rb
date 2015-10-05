@@ -139,7 +139,7 @@ def write_json(data, file, many = false)
     if many == false
 
         json = {
-            :generator => 'Atomizr - https://github.com/idleberg/atomizr',
+            :generator => "Atomizr v#{@version} - https://github.com/idleberg/atomizr",
             data['scope'] => data['completions']
         }
 
@@ -179,7 +179,7 @@ def write_cson(data, item, many = false)
 
     if many == false
 
-        cson =  "# Generated with Atomizr - https://github.com/idleberg/atomizr\n"
+        cson =  "# Generated with Atomizr v#{@version} - https://github.com/idleberg/atomizr\n"
         cson += "'"+data['scope']+"':\n"
 
         data['completions'].each do |item|
