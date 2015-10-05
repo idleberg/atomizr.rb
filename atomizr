@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-@version = "0.8.1"
+@version = "0.8.2"
 
 require "json"
 require "nokogiri"
@@ -58,8 +58,12 @@ def read_xml(item)
         prefix = filter_str(trigger, @prefix_filter)
         body   = filter_str(node.text.strip, @body_filter)
 
-        if @completions.has_key?(title) && @dupes == true
-            abort("Error: duplicate trigger #{title} in #{item}. Triggers must be unique.")
+        if @completions.has_key?(title)
+            if @dupes == false
+                puts " !! Duplicate trigger '#{title}' in #{item}"
+            else
+                abort("\nError: duplicate trigger '#{title}' in #{item}. Triggers must be unique.")
+            end
         end
 
         @completions[title] = {
@@ -99,8 +103,12 @@ def read_json(item)
         prefix = filter_str(trigger, @prefix_filter)
         body   = filter_str(contents, @body_filter)
 
-        if @completions.has_key?(title) && @dupes == true
-            abort("Error: duplicate trigger #{title} in #{item}")
+        if @completions.has_key?(title)
+            if @dupes == false
+                puts " !! Duplicate trigger '#{title}' in #{item}"
+            else
+                abort("\nError: duplicate trigger '#{title}' in #{item}. Triggers must be unique.")
+            end
         end
 
         @completions[title] = {
