@@ -45,7 +45,13 @@ def read_xml(item)
 
     # read file, parse data
     file = File.read(item)
-    data = Nokogiri::XML(file)
+
+    # validate file
+    if valid_xml?(file) == false
+        abort("\nError: Invalid XML file '#{item}'")
+    else
+        data = Nokogiri::XML(file)
+    end
 
     # get scope
     @data['scope'] = get_scope( data.xpath("//scope")[0].text.strip )
@@ -88,7 +94,6 @@ def read_json(item)
     if valid_json?(file) == false
         abort("\nError: Invalid JSON file '#{item}'")
     else
-        puts " √√ Valid JSON"
         data = JSON.load(file)
     end
 
@@ -132,6 +137,13 @@ end
 # via https://gist.github.com/ascendbruce/7070951
 def valid_json?(json)
     JSON.parse(json)
+    true
+rescue
+    false
+end
+
+def valid_xml?(xml)
+    Nokogiri::XML(xml) { |config| config.options = Nokogiri::XML::ParseOptions::STRICT }
     true
 rescue
     false
