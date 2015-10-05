@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-@version = "0.8.1"
+@version = "0.8.2"
 
 require "json"
 require "nokogiri"
@@ -139,6 +139,7 @@ def write_json(data, file, many = false)
     if many == false
 
         json = {
+            :generator => 'Atomizr - https://github.com/idleberg/atomizr',
             data['scope'] => data['completions']
         }
 
@@ -153,7 +154,6 @@ def write_json(data, file, many = false)
         scope = data['scope']
 
         data['completions'].each do |item|
-
 
             file = filter_str(item[1][:prefix], @filename_filter)
 
@@ -179,7 +179,8 @@ def write_cson(data, item, many = false)
 
     if many == false
 
-        cson = "'"+data['scope']+"':\n"
+        cson =  "# Generated with Atomizr - https://github.com/idleberg/atomizr\n"
+        cson += "'"+data['scope']+"':\n"
 
         data['completions'].each do |item|
 
@@ -341,7 +342,7 @@ ARGV.options do |opts|
         end
     }
 
-    opts.on("-D", "--allow-duplicates", "allow duplicate triggers") {    
+    opts.on("-D", "--skip-duplicates", "skip duplicate triggers") {    
         @dupes = false
     }
 
