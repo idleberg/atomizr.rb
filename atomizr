@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-@version = "0.8.2"
+@version = "0.8.1"
 
 require "json"
 require "nokogiri"
