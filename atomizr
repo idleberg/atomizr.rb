@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-@version = "0.7.0"
+@version = "0.8.0"
 
 require "json"
 require "nokogiri"
@@ -58,7 +58,7 @@ def read_xml(item)
         prefix = filter_str(trigger, @prefix_filter)
         body   = filter_str(node.text.strip, @body_filter)
 
-        if @completions.has_key?(title)
+        if @completions.has_key?(title) && @dupes == true
             abort("Error: duplicate trigger #{title} in #{item}. Triggers must be unique.")
         end
 
@@ -92,7 +92,7 @@ def read_json(item)
         prefix = filter_str(trigger, @prefix_filter)
         body   = filter_str(contents, @body_filter)
 
-        if @completions.has_key?(title)
+        if @completions.has_key?(title) && @dupes == true
             abort("Error: duplicate trigger #{title} in #{item}")
         end
 
@@ -283,6 +283,7 @@ end
 @scope = nil
 @merge = false
 @split = false
+@dupes = true
 @array = []
 
 args = ARGV.count
@@ -323,6 +324,10 @@ ARGV.options do |opts|
         else     
             abort("Error: You can't merge AND split")       
         end
+    }
+
+    opts.on("-D", "--allow-duplicates", "allow duplicate triggers") {    
+        @dupes = false
     }
 
     opts.on_tail("-v", "--version", "show version") do
