@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-@version = "0.8.2"
+@version = "0.9.0"
 
 require "json"
 require "nokogiri"
@@ -81,9 +81,16 @@ def read_json(item)
 
     puts "\nReading completion file '#{item}'"
 
-    # read file, parse data
+    # read file
     file = File.read(item)
-    data = JSON.load(file)
+
+    # validate file
+    if valid_json?(file) == false
+        abort("\nError: Invalid JSON file '#{item}'")
+    else
+        puts " √√ Valid JSON"
+        data = JSON.load(file)
+    end
 
     # get scope
     @data['scope'] = get_scope( data["scope"] )
@@ -120,6 +127,14 @@ def read_json(item)
      @data['completions'] = @completions
 
     return @data
+end
+
+# via https://gist.github.com/ascendbruce/7070951
+def valid_json?(json)
+    JSON.parse(json)
+    true
+rescue
+    false
 end
 
 def write_data(item)
@@ -357,8 +372,13 @@ end
 # let's go
 puts meta_info
 
+# error handling
 if args < 1
     abort("\nError: no arguments passed")
+elsif @input == nil
+    abort("\nError: no input passed")
+elsif @output == nil
+    abort("\nError: no output passed")
 end
 
 # Create output directory, if necessary
