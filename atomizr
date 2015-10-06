@@ -317,10 +317,11 @@ end
 
 def get_outname(type, item)
     if $output == type
-        if ($input.start_with? "*.") || (($input.end_with? ".*"))
+
+        if ($input[0].start_with? "*.") || (($input[0].end_with? ".*"))
             file = item
         else
-            file = $input
+            file = $input[0]
         end
         output = File.basename(file, ".*")+"."+type
     else
@@ -388,7 +389,7 @@ ARGV.options do |opts|
         exit
     end
 
-    opts.on("-i", "--input=<file>", String, "Input file(s)") {
+    opts.on("-i", "--input=<file>", Array, "Input file(s)") {
         |input| $input = input
     }
 
@@ -450,53 +451,57 @@ if !Dir.exists?("_output")
     Dir.mkdir("_output")
 end
 
-if ($input.end_with? ".sublime-completions") || ($input.end_with? ".json")
+$input.each do |input|
 
-    if $merge == true
-        init_hashes()
-    end
+    if (input.end_with? ".sublime-completions") || (input.end_with? ".json")
 
-    Dir.glob($input) do |item|
-
-        if $merge == false
+        if $merge == true
             init_hashes()
         end
 
-        $data = read_json(item)
+        Dir.glob(input) do |item|
 
-        if $merge == false
-            write_data(item)
+            if $merge == false
+                init_hashes()
+            end
+
+            $data = read_json(item)
+
+            if $merge == false
+                write_data(item)
+            end
         end
-    end
 
-    if $merge == true
-        write_data($output)
-    end
+        if $merge == true
+            write_data($output)
+        end
 
-elsif ($input.end_with? ".sublime-snippet") || ($input.end_with? ".tmSnippet")|| ($input.end_with? ".xml")
+    elsif (input.end_with? ".sublime-snippet") || (input.end_with? ".tmSnippet")|| (input.end_with? ".xml")
 
-    if $merge == true
-        init_hashes()
-    end
-
-    Dir.glob($input) do |item|
-
-        if $merge == false
+        if $merge == true
             init_hashes()
         end
 
-        $data = read_xml(item)
+        Dir.glob(input) do |item|
 
-        if $merge == false
-            write_data(item)
+            if $merge == false
+                init_hashes()
+            end
+
+            $data = read_xml(item)
+
+            if $merge == false
+                write_data(item)
+            end
         end
+
+        if $merge == true
+            write_data($output)
+        end
+    else
+        puts "\nError: Unsupported file passed (#{input})"
     end
 
-    if $merge == true
-        write_data($output)
-    end
-else
-    puts "\nError: Unknown file passed (#{$input})"
 end
 
 # Game Over
