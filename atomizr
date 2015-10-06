@@ -388,9 +388,9 @@ puts meta_info
 if args < 1
     abort("\nError: no arguments passed")
 elsif @input == nil
-    abort("\nError: no input passed")
+    abort("\nError: no input argument passed")
 elsif @output == nil
-    abort("\nError: no output passed")
+    abort("\nError: no output argument passed")
 end
 
 # Create output directory, if necessary
