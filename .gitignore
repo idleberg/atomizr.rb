@@ -1,5 +1,6 @@
 *.sublime-completions
 *.sublime-snippet
+*.tmSnippet
 .bundle/
 _output
 Gemfile.lock
