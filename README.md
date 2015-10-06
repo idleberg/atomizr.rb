@@ -8,7 +8,7 @@ A Ruby script to convert [Sublime Text](http://www.sublimetext.com/) snippets an
 ## Installation
 
 1. Clone the repository `git clone https://github.com/idleberg/atomizr.git`
-2. Change directory `cd atomizr.git`
+2. Change directory `cd atomizr`
 3. Install Gems using [Bundler](http://bundler.io/) `bundle install`
 
 ## Usage
