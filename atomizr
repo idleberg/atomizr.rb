@@ -49,7 +49,7 @@ def read_xml(item)
     file = File.read(item)
 
     # validate file
-    if valid_xml?(file) == false
+    if (valid_xml?(file) == false) && ($no_validation == false)
         abort("\nError: Invalid XML file '#{item}'")
     end
 
@@ -136,7 +136,7 @@ def read_json(item)
     file = File.read(item)
 
     # validate file
-    if valid_json?(file) == false
+    if (valid_json?(file) == false) && $no_validation == false
         abort("\nError: Invalid JSON file '#{item}'")
     else
         data = JSON.load(file)
@@ -388,7 +388,8 @@ $merge = false
 $split = false
 $dupes = true
 $is_tm = false
-$no_comment = false
+$no_comment    = false
+$no_validation = false
 
 args = ARGV.count
  
@@ -422,7 +423,7 @@ ARGV.options do |opts|
         end
     }
 
-    opts.on("-M", "--merge", "merge result into single file") {
+    opts.on("-M", "--merge", "merge results into single file") {
         if $split != true
             $merge = true
         else     
@@ -430,12 +431,16 @@ ARGV.options do |opts|
         end
     }
 
+    opts.on("-C", "--skip-comments", "skip generator comments") {
+        $no_comment = true
+    }
+
     opts.on("-D", "--skip-duplicates", "skip duplicate triggers") {
         $dupes = false
     }
 
-    opts.on("-C", "--skip-comments", "skip generator comments") {
-        $no_comment = true
+    opts.on("-V", "--skip-validation", "skip file validation") {
+        $no_validation = true
     }
 
     opts.on("-T", "--is-textmate", "interprete snippet as TextMate") {
