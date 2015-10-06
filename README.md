@@ -46,7 +46,7 @@ atomizr --input=<file> --output=<file> --scope=text.html --split
 atomizr -i <file> -o <file> -s text.html -S
 ```
 
-For all available options, see `./atomizr --help` for details
+For all available options, see `atomizr --help` for details
 
 ## Filters
 
