@@ -1,26 +1,26 @@
 #!/usr/bin/env ruby
 
-@version = "0.9.0"
+$version = "0.10.0"
 
 require "json"
 require "nokogiri"
 require "optparse"
 
 # Arrays of filters to replace characters in strings
-@filename_filter =  [
+$filename_filter =  [
     [/[\x00\/\\:\*\?\"\$<>\|]/, "_"],
     ["\t",  "-"]
 ]
-@title_filter = [
+$title_filter = [
     # [find, replace]
 ]
-@prefix_filter = [
+$prefix_filter = [
     [/[\x00\/\\:\*\?\"\$<>\|]/, '']
 ]
-@body_filter = [
+$body_filter = [
     # [find, replace]
 ]
-@scope_filter = [
+$scope_filter = [
     # https://gist.github.com/idleberg/fca633438329cc5ae317
     [',', ''],
     [/\.?source\.c\+\+/, '.source.cpp'],
@@ -33,10 +33,12 @@ require "optparse"
 ]
 
 meta_info = <<-EOF
-\nAtomizr, version #{@version}
+\nAtomizr, version #{$version}
 The MIT License
 Copyright (c) 2015 Jan T. Sott
 EOF
+
+puts "\n"+File.expand_path('../other_file_in_same_dir', __FILE__)
 
 # Methods
 def read_xml(item)
@@ -49,38 +51,81 @@ def read_xml(item)
     # validate file
     if valid_xml?(file) == false
         abort("\nError: Invalid XML file '#{item}'")
-    else
-        data = Nokogiri::XML(file)
     end
 
+    data = Nokogiri::XML(file)
+
+    if (item.end_with? ".tmSnippet") || ($is_tm == true)
+        $data['completions'] = read_textmate_xml(item, data)
+    else
+        $data['completions'] = read_sublime_xml(item, data)
+    end
+
+    return $data
+end
+
+def read_sublime_xml(item, data)
+
     # get scope
-    @data['scope'] = get_scope( data.xpath("//scope")[0].text.strip )
+    $data['scope'] = get_scope( data.xpath("//scope")[0].text.strip )
 
     trigger = data.xpath("//tabTrigger")[0].text.strip
 
     data.xpath("//content").each do |node|
 
-        title  = filter_str(trigger, @title_filter)
-        prefix = filter_str(trigger, @prefix_filter)
-        body   = filter_str(node.text.strip, @body_filter)
+        title  = filter_str(trigger, $title_filter)
+        prefix = filter_str(trigger, $prefix_filter)
+        body   = filter_str(node.text.strip, $body_filter)
 
-        if @completions.has_key?(title)
-            if @dupes == false
+        if $completions.has_key?(title)
+            if $dupes == false
                 puts " !! Duplicate trigger '#{title}' in #{item}"
             else
                 abort("\nError: duplicate trigger '#{title}' in #{item}. Triggers must be unique.")
             end
         end
 
-        @completions[title] = {
+        $completions[title] = {
             :prefix => prefix,
             :body => body
         }
     end
 
-    @data['completions'] = @completions
+    return $completions
+end
 
-    return @data
+def read_textmate_xml(item, data)
+
+    kws = %w{ scope tabTrigger content name }
+
+    data.xpath('//dict').each do | node |
+      node.element_children.map(&:content).each_slice(2) do | k, v |
+        next unless kws.include? k
+        # puts "#{k}"
+        case k
+        when 'scope'
+            $data['scope'] = get_scope(v.to_s)
+            # puts "scope="+$data['scope']
+        when 'name'
+            @title = filter_str(v.to_s, $title_filter)
+            # puts "title=#{title}"
+        when 'tabTrigger'
+            
+            @prefix = filter_str(v.to_s, $prefix_filter)
+            # puts "prefix=#{prefix}"
+        when 'content'
+            @body = filter_str(v.to_s.strip, $body_filter)
+            # puts "body=#{body}"
+        end
+      end
+    end
+    
+    $completions[@title] = {
+        :prefix => @prefix,
+        :body => @body
+    }
+
+    return $completions
 end
 
 def read_json(item)
@@ -98,7 +143,7 @@ def read_json(item)
     end
 
     # get scope
-    @data['scope'] = get_scope( data["scope"] )
+    $data['scope'] = get_scope( data["scope"] )
 
     data["completions"].each do |line|
         trigger = line["trigger"]
@@ -111,27 +156,27 @@ def read_json(item)
 
         contents = line["contents"]
 
-        title  = filter_str(trigger, @title_filter)
-        prefix = filter_str(trigger, @prefix_filter)
-        body   = filter_str(contents, @body_filter)
+        title  = filter_str(trigger, $title_filter)
+        prefix = filter_str(trigger, $prefix_filter)
+        body   = filter_str(contents, $body_filter)
 
-        if @completions.has_key?(title)
-            if @dupes == false
+        if $completions.has_key?(title)
+            if $dupes == false
                 puts " !! Duplicate trigger '#{title}' in #{item}"
             else
                 abort("\nError: duplicate trigger '#{title}' in #{item}. Triggers must be unique.")
             end
         end
 
-        @completions[title] = {
+        $completions[title] = {
             :prefix => prefix,
             :body => body
         }
     end
 
-     @data['completions'] = @completions
+     $data['completions'] = $completions
 
-    return @data
+    return $data
 end
 
 # via https://gist.github.com/ascendbruce/7070951
@@ -150,15 +195,15 @@ rescue
 end
 
 def write_data(item)
-    if @output == "json"
+    if $output == "json"
         file = get_outname('json', item)
-        write_json(@data, file, @split)
+        write_json($data, file, $split)
     else
         file = get_outname('cson', item)
-        write_cson(@data, file, @split)
+        write_cson($data, file, $split)
     end
 
-    @input_counter += 1
+    $input_counter += 1
 end
 
 def write_json(data, file, many = false)
@@ -166,7 +211,7 @@ def write_json(data, file, many = false)
     if many == false
 
         json = {
-            :generator => "Atomizr v#{@version} - https://github.com/idleberg/atomizr",
+            :generator => "Atomizr v#{$version} - https://github.com/idleberg/atomizr",
             data['scope'] => data['completions']
         }
 
@@ -174,7 +219,7 @@ def write_json(data, file, many = false)
         File.open("_output/#{file}","w") do |f|
           f.write(JSON.pretty_generate(json))
         end
-        @output_counter += 1
+        $output_counter += 1
 
     elsif many == true
 
@@ -182,7 +227,7 @@ def write_json(data, file, many = false)
 
         data['completions'].each do |item|
 
-            file = filter_str(item[1][:prefix], @filename_filter)
+            file = filter_str(item[1][:prefix], $filename_filter)
 
             json = {
                 data['scope'] => {
@@ -197,7 +242,7 @@ def write_json(data, file, many = false)
             File.open("_output/#{file}.json","w") do |f|
               f.write(JSON.pretty_generate(json))
             end
-            @output_counter += 1
+            $output_counter += 1
         end
     end
 end
@@ -206,7 +251,7 @@ def write_cson(data, item, many = false)
 
     if many == false
 
-        cson =  "# Generated with Atomizr v#{@version} - https://github.com/idleberg/atomizr\n"
+        cson =  "# Generated with Atomizr v#{$version} - https://github.com/idleberg/atomizr\n"
         cson += "'"+data['scope']+"':\n"
 
         data['completions'].each do |item|
@@ -234,7 +279,7 @@ def write_cson(data, item, many = false)
         File.open("_output/#{file}","w") do |f|
           f.write(cson)
         end
-        @output_counter += 1
+        $output_counter += 1
 
     elsif many == true
 
@@ -247,7 +292,7 @@ def write_cson(data, item, many = false)
             prefix = item[1][:prefix]
             body = item[1][:body]
 
-            file = filter_str(prefix, @filename_filter)
+            file = filter_str(prefix, $filename_filter)
 
             cson += "  '"+title+"':\n"
             cson += "    'prefix': '"+prefix+"'\n"
@@ -265,21 +310,21 @@ def write_cson(data, item, many = false)
             File.open("_output/#{file}.cson","w") do |f|
               f.write(cson)
             end
-            @output_counter += 1
+            $output_counter += 1
         end
     end
 end
 
 def get_outname(type, item)
-    if @output == type
-        if (@input.start_with? "*.") || ((@input.end_with? ".*"))
+    if $output == type
+        if ($input.start_with? "*.") || (($input.end_with? ".*"))
             file = item
         else
-            file = @input
+            file = $input
         end
         output = File.basename(file, ".*")+"."+type
     else
-        output = @output
+        output = $output
     end
 
     return output
@@ -287,20 +332,22 @@ end
 
 def get_scope(scope)
 
-    if @scope == nil
-        scope = filter_str(scope, @scope_filter)
+    if $scope == nil
+        scope = fix_scope(filter_str(scope, $scope_filter))
         puts "Using default scope '"+scope+"'"
     else
-        if @scope[0] != "."
-            scope = "."+ @scope
-        else
-            scope = @scope
-        end
-        scope = filter_str(scope, @scope_filter)
+        scope = fix_scope(filter_str($scope, $scope_filter))
         puts "Override scope using '"+scope+"'"
     end
 
     return scope
+end
+
+# prepend dot to scope
+def fix_scope(scope)
+    if scope[0] != "."
+        scope = "."+ scope
+    end
 end
 
 def filter_str(input, filter)
@@ -315,19 +362,19 @@ def filter_str(input, filter)
 end
 
 def init_hashes()
-    @data = Hash.new
-    @completions = Hash.new
+    $data = Hash.new
+    $completions = Hash.new
 end
 
 # default options
-@input_counter  = 0
-@output_counter = 0
+$input_counter  = 0
+$output_counter = 0
 
-@scope = nil
-@merge = false
-@split = false
-@dupes = true
-@array = []
+$scope = nil
+$merge = false
+$split = false
+$dupes = true
+$is_tm = false
 
 args = ARGV.count
  
@@ -342,39 +389,43 @@ ARGV.options do |opts|
     end
 
     opts.on("-i", "--input=<file>", String, "Input file(s)") {
-        |input| @input = input
+        |input| $input = input
     }
 
     opts.on("-o", "--output=<file>", String, "Output file") {
-        |output| @output = output
+        |output| $output = output
     }
 
     opts.on("-s", "--scope=<scope>", String, "overwrite scope") {
-        |val| @scope = val
+        |val| $scope = val
     }
 
     opts.on("-S", "--split", "split result into multiple files") {
-        if @merge != true       
-            @split = true        
+        if $merge != true
+            $split = true
         else     
             abort("Error: You can't split AND merge")
         end
     }
 
     opts.on("-M", "--merge", "merge result into single file") {
-        if @split != true       
-            @merge = true        
+        if $split != true
+            $merge = true
         else     
-            abort("Error: You can't merge AND split")       
+            abort("Error: You can't merge AND split")
         end
     }
 
-    opts.on("-D", "--skip-duplicates", "skip duplicate triggers") {    
-        @dupes = false
+    opts.on("-D", "--skip-duplicates", "skip duplicate triggers") {
+        $dupes = false
+    }
+
+    opts.on("-T", "--is-textmate", "interprete snippet as TextMate") {
+        $is_tm = true
     }
 
     opts.on_tail("-v", "--version", "show version") do
-        puts @version
+        puts $version
         exit
     end
 
@@ -387,9 +438,9 @@ puts meta_info
 # error handling
 if args < 1
     abort("\nError: no arguments passed")
-elsif @input == nil
+elsif $input == nil
     abort("\nError: no input argument passed")
-elsif @output == nil
+elsif $output == nil
     abort("\nError: no output argument passed")
 end
 
@@ -399,60 +450,60 @@ if !Dir.exists?("_output")
     Dir.mkdir("_output")
 end
 
-if (@input.end_with? ".sublime-completions") || (@input.end_with? ".json")
+if ($input.end_with? ".sublime-completions") || ($input.end_with? ".json")
 
-    if @merge == true
+    if $merge == true
         init_hashes()
     end
 
-    Dir.glob(@input) do |item|
+    Dir.glob($input) do |item|
 
-        if @merge == false
+        if $merge == false
             init_hashes()
         end
 
-        @data = read_json(item)
+        $data = read_json(item)
 
-        if @merge == false
+        if $merge == false
             write_data(item)
         end
     end
 
-    if @merge == true
-        write_data(@output)
+    if $merge == true
+        write_data($output)
     end
 
-elsif (@input.end_with? ".sublime-snippet") || (@input.end_with? ".xml")
+elsif ($input.end_with? ".sublime-snippet") || ($input.end_with? ".tmSnippet")|| ($input.end_with? ".xml")
 
-    if @merge == true
+    if $merge == true
         init_hashes()
     end
 
-    Dir.glob(@input) do |item|
+    Dir.glob($input) do |item|
 
-        if @merge == false
+        if $merge == false
             init_hashes()
         end
 
-        @data = read_xml(item)
+        $data = read_xml(item)
 
-        if @merge == false
+        if $merge == false
             write_data(item)
         end
     end
 
-    if @merge == true
-        write_data(@output)
+    if $merge == true
+        write_data($output)
     end
 else
-    puts "\nError: Unknown file passed (#{@input})"
+    puts "\nError: Unknown file passed (#{$input})"
 end
 
 # Game Over
-if @input_counter == 0
+if $input_counter == 0
     puts "No files converted"
-elsif @input_counter == 1
-     puts "\nAtomized #{@input_counter} file, created #{@output_counter}"
+elsif $input_counter == 1
+     puts "\nAtomized #{$input_counter} file, created #{$output_counter}"
 else
-    puts "\nAtomized #{@input_counter} files, created #{@output_counter}"
+    puts "\nAtomized #{$input_counter} files, created #{$output_counter}"
 end
