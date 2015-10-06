@@ -13,38 +13,40 @@ A Ruby script to convert [Sublime Text](http://www.sublimetext.com/) snippets an
 
 ## Usage
 
-As a shorthand to `ruby atomizr [options]`, you can set `chmod +x atomizr` and run the script as follows:
+As a shorthand to `ruby atomizr [options]`, you can set `chmod +x atomizr` and run the script as `atomizr [options]`.
+
+Examples:
 
 ```bash
 # Convert snippet or completions
-./atomizr --input=<file> --output=<file> [options]
+atomizr --input=<file> --output=<file> [options]
 
 # Convert file into CSON
-./atomizr --input=<file> --output=<file>.cson
+atomizr --input=<file> --output=<file>.cson
 
 # Convert file into JSON
-./atomizr --input=<file> --output=<file>.json
+atomizr --input=<file> --output=<file>.json
 
 # Convert completions, save as multiple CSON files
-./atomizr --input=<file>.sublime-completions --output=cson --split
+atomizr --input=<file>.sublime-completions --output=cson --split
 
 # Use quotes to convert multiple files at once
-./atomizr --input="dir/*.sublime-snippet" --output=cson
+atomizr --input="*.sublime-snippet" --output=cson
 
 # Merge converted snippets into single file
-./atomizr --input="dir/*.sublime-snippet" --output=<file>.cson --merge
+atomizr --input="*.sublime-snippet" --output=<file>.cson --merge
 
 # Override scope
-./atomizr --input=<file> --output=<file> --scope=text.html
+atomizr --input=<file> --output=<file> --scope=text.html
 
 # Example using every possible argument
-./atomizr --input=<file> --output=<file> --scope=text.html --split
+atomizr --input=<file> --output=<file> --scope=text.html --split
 
 # Same as above, using shorthands
-./atomizr -i <file> -o <file> -s text.html -S
+atomizr -i <file> -o <file> -s text.html -S
 ```
 
-See `./atomizr --help` for details
+For all available options, see `./atomizr --help` for details
 
 ## Filters
 
