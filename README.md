@@ -29,10 +29,10 @@ As a shorthand to `ruby atomizr [options]`, you can set `chmod +x atomizr` and r
 ./atomizr --input=<file>.sublime-completions --output=cson --split
 
 # Use quotes to convert multiple files at once
-./atomizr --input="snippets/*" --output=cson
+./atomizr --input="dir/*.sublime-snippet" --output=cson
 
 # Merge converted snippets into single file
-./atomizr --input="snippets/*" --output=<file>.cson --merge
+./atomizr --input="dir/*.sublime-snippet" --output=<file>.cson --merge
 
 # Override scope
 ./atomizr --input=<file> --output=<file> --scope=text.html
