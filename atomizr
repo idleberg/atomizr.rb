@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-$version = "0.11.1"
+$version = "0.11.2"
 
 require "json"
 require "nokogiri"
@@ -60,6 +60,8 @@ def read_xml(item)
     else
         $data['completions'] = read_sublime_xml(item, data)
     end
+
+    $input_counter += 1
 
     return $data
 end
@@ -169,6 +171,7 @@ def read_json(item)
 
      $data['completions'] = $completions
 
+    $input_counter += 1
     return $data
 end
 
@@ -195,8 +198,6 @@ def write_data(item)
         file = get_outname('cson', item)
         write_cson($data, file, $split)
     end
-
-    $input_counter += 1
 end
 
 def write_json(data, file, many = false)
