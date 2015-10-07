@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-$version = "0.11.0"
+$version = "0.11.1"
 
 require "json"
 require "nokogiri"
@@ -96,30 +96,23 @@ end
 
 def read_textmate_xml(item, data)
 
-    kws = %w{ scope tabTrigger content name }
-
     data.xpath('//dict').each do | node |
       node.element_children.map(&:content).each_slice(2) do | k, v |
-        next unless kws.include? k
-        # puts "#{k}"
         case k
         when 'scope'
             $data['scope'] = get_scope(v.to_s)
-            # puts "scope="+$data['scope']
         when 'name'
             @title = filter_str(v.to_s, $title_filter)
-            # puts "title=#{title}"
         when 'tabTrigger'
-            
             @prefix = filter_str(v.to_s, $prefix_filter)
-            # puts "prefix=#{prefix}"
         when 'content'
             @body = filter_str(v.to_s.strip, $body_filter)
-            # puts "body=#{body}"
+        else
+            next
         end
       end
     end
-    
+
     $completions[@title] = {
         :prefix => @prefix,
         :body => @body
