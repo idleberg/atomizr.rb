@@ -8,7 +8,7 @@ require "optparse"
 
 # Arrays of filters to replace characters in strings
 $filename_filter =  [
-    [/[\x00\/\\:\*\?\"\$<>\|]/, "_"],
+    [/[\x00\/\\:\*\?\"\$<>\|]/, '_'],
     ["\t",  "-"]
 ]
 $title_filter = [
