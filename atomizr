@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-$version = "0.11.2"
+$version = "0.11.3"
 
 require "json"
 require "nokogiri"
@@ -12,13 +12,18 @@ $filename_filter =  [
     ["\t",  "-"]
 ]
 $title_filter = [
-    # [find, replace]
+    [/\x27/, "\\\\'"],  # single-quote
+    [/\x22/, "\\\""],   # double-quote
+    [/\x5C/, "\\\\"],   # backslash
 ]
 $prefix_filter = [
-    [/[\x00\/\\:\*\?\"\$<>\|]/, '']
+    [/[\x00\x22\x27\/\\:\*\?\"\'\$<>\|]/, '']
 ]
 $body_filter = [
-    # [find, replace]
+    [/\x27/, "\\\\'"],  # single-quote
+    [/\x22/, "\\\""],   # double-quote
+    [/\x5C/, "\\\\"],   # backslash
+    [/\t/, "\\\\t"]     # tabulator
 ]
 $scope_filter = [
     # https://gist.github.com/idleberg/fca633438329cc5ae317
