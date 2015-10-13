@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-$version = "0.11.4"
+$version = "0.11.5"
 
 require "json"
 require "nokogiri"
@@ -42,8 +42,6 @@ meta_info = <<-EOF
 The MIT License
 Copyright (c) 2015 Jan T. Sott
 EOF
-
-puts "\n"+File.expand_path('../other_file_in_same_dir', __FILE__)
 
 # Methods
 def read_xml(item)
