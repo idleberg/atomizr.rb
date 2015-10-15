@@ -502,7 +502,7 @@ ARGV.options do |opts|
         $no_validation = true
     }
 
-    opts.on("-F", "--to-folder=<scope>", String, "specify target subfolder") do |folder|
+    opts.on("-F", "--to-folder=<target>", String, "specify target subfolder") do |folder|
          $folder = folder
     end
 
