@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-$version = "0.13.0"
+$version = "0.14.0"
 
 require "json"
 require "nokogiri"
@@ -77,7 +77,7 @@ def read_xml(item)
 
     # validate file
     if (valid_xml?(file) == false) && ($no_validation == false)
-        abort("\nError: Invalid XML file '#{item}'")
+        abort("\nError: Invalid XML file '#{item}'") unless $silent == true 
     end
 
     data = Nokogiri::XML(file)
@@ -159,7 +159,7 @@ def read_json(item)
 
     # validate file
     if (valid_json?(file) == false) && $no_validation == false
-        abort("\nError: Invalid JSON file '#{item}'")
+        abort("\nError: Invalid JSON file '#{item}'") unless $silent == true 
     else
         data = JSON.load(file)
     end
@@ -186,7 +186,7 @@ def read_json(item)
             if $dupes == false
                 puts " !! Duplicate trigger #{title.dump} in #{item}"
             else
-                abort("\nError: duplicate trigger '#{title.dump}' in #{item}. Triggers must be unique.")
+                abort("\nError: duplicate trigger '#{title.dump}' in #{item}. Triggers must be unique.") unless $silent == true 
             end
         end
 
@@ -243,7 +243,7 @@ def write_json(data, file, many = false)
         end
 
         puts "Writing '#{file}'"
-        File.open("_output/#{file}","w") do |f|
+        File.open("#{$folder}/#{file}","w") do |f|
           f.write(JSON.pretty_generate(json))
         end
         $output_counter += 1
@@ -266,7 +266,7 @@ def write_json(data, file, many = false)
             }
 
             puts "Writing '#{file}.json'"
-            File.open("_output/#{file}.json","w") do |f|
+            File.open("#{$folder}/#{file}.json","w") do |f|
               f.write(JSON.pretty_generate(json))
             end
             $output_counter += 1
@@ -307,14 +307,14 @@ def write_cson(data, item, many = false)
         end
 
         if File.directory?($input[0])
-            mkdir("_output/#{$output}/snippets")
+            mkdir("#{$folder}/#{$output}/snippets")
             file = $output + '/snippets/' + item + '.cson'
         else
             file = get_outname('cson', item)
         end
 
         puts "Writing '#{file}'"
-        File.open("_output/#{file}","w") do |f|
+        File.open("#{$folder}/#{file}","w") do |f|
           f.write(cson)
         end
         $output_counter += 1
@@ -345,7 +345,7 @@ def write_cson(data, item, many = false)
             end
 
             puts "Writing '#{file}.cson'"
-            File.open("_output/#{file}.cson","w") do |f|
+            File.open("#{$folder}/#{file}.cson","w") do |f|
               f.write(cson)
             end
             $output_counter += 1
@@ -438,6 +438,8 @@ end
 # default options
 $input_counter  = 0
 $output_counter = 0
+$folder = "_output"
+$silent = false
 
 $scope = nil
 $merge = false
@@ -500,6 +502,10 @@ ARGV.options do |opts|
         $no_validation = true
     }
 
+    opts.on("-F", "--to-folder=<scope>", String, "specify target subfolder") do |folder|
+         $folder = folder
+    end
+
     opts.on("-X", "--delete-input", "delete input file(s) on completion") {
         $delete_input = true
     }
@@ -508,8 +514,12 @@ ARGV.options do |opts|
         $is_tm = true
     }
 
+    opts.on("-Z", "--silent", "run silently") {
+        $silent = true
+    }
+
     opts.on_tail("-v", "--version", "show version") do
-        puts $version
+        puts $version unless $silent == true 
         exit
     end
 
@@ -517,19 +527,19 @@ ARGV.options do |opts|
 end
 
 # let's go
-puts meta_info
+puts meta_info unless $silent == true 
 
 # error handling
 if args < 1
-    abort("\nError: no arguments passed")
+    abort("\nError: no arguments passed") unless $silent == true 
 elsif $input == nil
-    abort("\nError: no input argument passed")
+    abort("\nError: no input argument passed") unless $silent == true 
 elsif $output == nil
-    abort("\nError: no output argument passed")
+    abort("\nError: no output argument passed") unless $silent == true 
 end
 
 # Create output directory, if necessary
-mkdir("_output")
+mkdir("#{$folder}")
 
 $input.each do |input|
 
@@ -556,48 +566,57 @@ $input.each do |input|
 
         abort if @tm.empty?
 
-        @parent = '_output/'+$output
-
         @tm.each do |item|
 
           next if item[1].empty?
 
-          puts "\nCollecting #{item[0].downcase}:"
+          puts "\nCollecting #{item[0].downcase}:" unless $silent == true 
 
           item[1].each do |file|
-              puts " + #{file}"
+              puts " + #{file}" unless $silent == true 
 
               @base = File.basename(file)
-              @parent = '_output/'+$output
+              @parent = "#{$folder}/#{$output}"
               @target = @parent+'/.tmp/'+item[0]+'/'
 
               mkdir(@target)
               copy_file(file, @target+@base, false)
-
-              $input_counter += 1
           end
 
         end
 
-        puts "\nConverting with apm"
+        puts "\nConverting with apm" unless $silent == true 
         system "apm init --package #{@parent} --convert #{@parent}/.tmp"
         FileUtils.rm_rf("#{@parent}/.tmp")
 
-        delete_file(input) if $delete_input == true
+        @st = Hash.new
+        @st['Snippets']    = Dir.glob("#{input}**/*.sublime-snippet")
+        @st['Completions'] = Dir.glob("#{input}**/*.sublime-completions")
 
-        $output_counter = Dir.glob("#{@parent}/**/*.cson").count
+        abort if @st.empty?
+
+        @st.each do |st|
+            st[1].each do |item|
+                next if item.empty?
+                system "#{__FILE__} -i '#{item}' -o cson -Z -F #{@parent}/snippets"
+            end
+        end
+
+        delete_file(input) if $delete_input == true
+        puts "\nCompleted."
+        exit
 
     else
-        puts "\nError: invalid input '#{input}'"
+        puts "\nError: invalid input '#{input}'" unless $silent == true 
     end
 
 end
 
 # Game Over
 if $input_counter == 0
-    puts "\nNo files converted"
+    puts "\nNo files converted" unless $silent == true
 elsif $input_counter == 1
-     puts "\nAtomized #{$input_counter} file, created #{$output_counter}"
+     puts "\nAtomized #{$input_counter} file, created #{$output_counter}" unless $silent == true 
 else
-    puts "\nAtomized #{$input_counter} files, created #{$output_counter}"
+    puts "\nAtomized #{$input_counter} files, created #{$output_counter}" unless $silent == true 
 end
