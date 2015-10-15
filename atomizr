@@ -13,17 +13,17 @@ $filename_filter =  [
     ["\t",  "-"]
 ]
 $title_filter = [
-    [/(\x5C|\/)/, "\\\\"],   # backslash
     [/\x27/, "\\\\'"],  # single-quote
     [/\x22/, "\\\""],   # double-quote
+    [/\x5C/, "\\\\"],   # backslash
 ]
 $prefix_filter = [
-    [/[\x00\x22\x27\/\\:\*\?\"\'\$<>\|]/, '']
+    [/[\x00\x22\x27\/\\:\*\?\"\'\$<>\{\}\|]/, '']
 ]
 $body_filter = [
-    [/\x5C/, "\\\\"],   # backslash
     [/\x27/, "\\\\'"],  # single-quote
-    [/\t/, "\\\\t"]     # tabulator
+    [/\x22/, "\\\""],   # double-quote
+    [/\x5C/, "\\\\"],   # backslash
 ]
 $scope_filter = [ 
     # https://gist.github.com/idleberg/fca633438329cc5ae317
