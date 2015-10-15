@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-$version = "0.12.1"
+$version = "0.13.0"
 
 require "json"
 require "nokogiri"
@@ -353,6 +353,20 @@ def write_cson(data, item, many = false)
     end
 end
 
+def delete_file(input)
+
+    if File.directory?(input)
+        puts "\nDeleting '#{input[0..-2]}'"
+        FileUtils.rm_rf(input)
+    else
+        Dir.glob(input) do |item|
+            puts "Deleting '#{item}'"
+            File.delete(item)
+        end
+    end
+
+end
+
 def get_outname(type, item)
     if $output == type
 
@@ -432,6 +446,7 @@ $dupes = true
 $is_tm = false
 $no_comment    = false
 $no_validation = false
+$delete_input  = false
 
 args = ARGV.count
  
@@ -485,6 +500,10 @@ ARGV.options do |opts|
         $no_validation = true
     }
 
+    opts.on("-X", "--delete-input", "delete input file(s) on completion") {
+        $delete_input = true
+    }
+
     opts.on("-T", "--is-textmate", "interprete snippet as TextMate") {
         $is_tm = true
     }
@@ -517,10 +536,12 @@ $input.each do |input|
     if (input.end_with? ".sublime-completions") || (input.end_with? ".json")
 
         read_file(input, "json")
+        delete_file(input) if $delete_input == true
 
     elsif (input.end_with? ".sublime-snippet") || (input.end_with? ".tmSnippet")|| (input.end_with? ".xml")
 
         read_file(input, "xml")
+        delete_file(input) if $delete_input == true
 
     elsif File.directory?(input)
 
@@ -562,17 +583,19 @@ $input.each do |input|
         system "apm init --package #{@parent} --convert #{@parent}/.tmp"
         FileUtils.rm_rf("#{@parent}/.tmp")
 
+        delete_file(input) if $delete_input == true
+
         $output_counter = Dir.glob("#{@parent}/**/*.cson").count
 
     else
-        puts "\nError: Unsupported file passed (#{input})"
+        puts "\nError: invalid input '#{input}'"
     end
 
 end
 
 # Game Over
 if $input_counter == 0
-    puts "No files converted"
+    puts "\nNo files converted"
 elsif $input_counter == 1
      puts "\nAtomized #{$input_counter} file, created #{$output_counter}"
 else
