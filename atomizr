@@ -356,7 +356,7 @@ end
 def get_outname(type, item)
     if $output == type
 
-        if $input[0].include? "*"
+        if $input[0].include?("*")
             file = item
         else
             file = $input[0]
