@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-$version = "0.11.6"
+$version = "0.11.7"
 
 require "json"
 require "nokogiri"
@@ -326,7 +326,7 @@ end
 def get_outname(type, item)
     if $output == type
 
-        if ($input[0].start_with? "*.") || (($input[0].end_with? ".*"))
+        if $input[0].include? "*"
             file = item
         else
             file = $input[0]
