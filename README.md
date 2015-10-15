@@ -51,7 +51,7 @@ Example:
 # Grab a random TextMate bundle
 git clone https://github.com/jashkenas/coffee-script-tmbundle CoffeeScript.tmBundle
 
-# Organize files, send to apm for conversion, delete bundle
+# Organize files, convert and delete bundle
 ./atomizr -i CoffeeScript.tmBundle -o atom-language-coffeescript -X
 ```
 
