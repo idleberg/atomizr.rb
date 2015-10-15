@@ -20,7 +20,7 @@ As a shorthand to `ruby atomizr [options]`, you can set `chmod +x atomizr` and r
 Examples:
 
 ```bash
-# Grab a random Sublime package
+# Grab a random Sublime Text package
 git clone https://github.com/idleberg/AppleScript-Sublime-Text AS
 
 # Usage: atomizr --input=<file> --output=<file> [options]
