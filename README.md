@@ -28,14 +28,14 @@ git clone https://github.com/idleberg/AppleScript-Sublime-Text AS
 # Convert completions into CSON
 ./atomizr --input=AS/AppleScript.sublime-completions --output=completions.cson
 
-# Again. To JSON. Using shorthands
+# Again, this time to JSON, and using shorthands
 ./atomizr -i AS/AppleScript.sublime-completions -o completions.json
 
-# Convert completions, one CSON file per completion
+# Convert completions, one file per completion
 ./atomizr -i AS/AppleScript.sublime-completions -o cson --split
 
-# Convert snippets, merge all snippets into one CSON file
-# Also, use quotes for wildcards!
+# Convert snippets, merge into one file.
+# Put wildcard in quotes!
 ./atomizr -i "AS/snippets/*.sublime-snippet" -o snippets.cson --merge
 ```
 
