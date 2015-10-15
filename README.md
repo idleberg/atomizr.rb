@@ -44,6 +44,9 @@ atomizr --input=<file> --output=<file> --scope=text.html --split
 
 # Same as above, using shorthands
 atomizr -i <file> -o <file> -s text.html -S
+
+# Put TextMate files in order and convert with apm
+atomizr -i <folder> -o <folder>
 ```
 
 For all available options, see `atomizr --help` for details
