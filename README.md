@@ -28,11 +28,8 @@ git clone https://github.com/idleberg/AppleScript-Sublime-Text AS
 # Convert completions into CSON
 ./atomizr --input=AS/AppleScript.sublime-completions --output=completions.cson
 
-# Again. This time into JSON, using shorthands
-./atomiz -i AS/AppleScript.sublime-completions -o completions.json -s text.fantasy
-
-# Override scope
-./atomizr -i AS/AppleScript.sublime-completions -o completions.json --scope=text.fantasy
+# Again. To JSON. Using shorthands
+./atomizr -i AS/AppleScript.sublime-completions -o completions.json
 
 # Convert completions, one CSON file per completion
 ./atomizr -i AS/AppleScript.sublime-completions -o cson --split
