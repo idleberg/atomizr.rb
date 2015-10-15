@@ -1,10 +1,11 @@
 #!/usr/bin/env ruby
 
-$version = "0.11.7"
+$version = "0.12.0"
 
 require "json"
 require "nokogiri"
 require "optparse"
+require "fileutils"
 
 # Arrays of filters to replace characters in strings
 $filename_filter =  [
@@ -12,16 +13,16 @@ $filename_filter =  [
     ["\t",  "-"]
 ]
 $title_filter = [
+    [/(\x5C|\/)/, "\\\\"],   # backslash
     [/\x27/, "\\\\'"],  # single-quote
     [/\x22/, "\\\""],   # double-quote
-    [/\x5C/, "\\\\"],   # backslash
 ]
 $prefix_filter = [
     [/[\x00\x22\x27\/\\:\*\?\"\'\$<>\|]/, '']
 ]
 $body_filter = [
-    [/\x27/, "\\\\'"],  # single-quote
     [/\x5C/, "\\\\"],   # backslash
+    [/\x27/, "\\\\'"],  # single-quote
     [/\t/, "\\\\t"]     # tabulator
 ]
 $scope_filter = [ 
@@ -43,6 +44,30 @@ Copyright (c) 2015 Jan T. Sott
 EOF
 
 # Methods
+def read_file(input, type)
+    if $merge == true
+        init_hashes()
+    end
+
+    Dir.glob(input) do |item|
+
+        if $merge == false
+            init_hashes()
+        end
+
+        $data = send("read_#{type}", item)
+
+        if $merge == false
+            write_data(item)
+        end
+    end
+
+    if $merge == true
+        write_data($output)
+    end
+end
+
+
 def read_xml(item)
 
     puts "\nReading snippet file '#{item}'"
@@ -281,7 +306,12 @@ def write_cson(data, item, many = false)
             end
         end
 
-        file = get_outname('cson', item)
+        if File.directory?($input[0])
+            mkdir("_output/#{$output}/snippets")
+            file = $output + '/snippets/' + item + '.cson'
+        else
+            file = get_outname('cson', item)
+        end
 
         puts "Writing '#{file}'"
         File.open("_output/#{file}","w") do |f|
@@ -357,6 +387,8 @@ def fix_scope(scope)
     if scope[0] != "."
         scope = "."+ scope
     end
+
+    return scope
 end
 
 def filter_str(input, filter)
@@ -373,6 +405,20 @@ end
 def init_hashes()
     $data = Hash.new
     $completions = Hash.new
+end
+
+def mkdir(folder)
+  if !Dir.exists?(folder)
+    FileUtils.mkdir_p(folder)
+  end
+end
+
+def copy_file(src, dest, del = false)
+  File.write(dest, File.read(src))
+
+  if del == true
+    File.delete(src)
+    end
 end
 
 # default options
@@ -464,58 +510,60 @@ elsif $output == nil
 end
 
 # Create output directory, if necessary
-if !Dir.exists?("_output")
-    puts "\nCreate output directory"
-    Dir.mkdir("_output")
-end
+mkdir("_output")
 
 $input.each do |input|
 
     if (input.end_with? ".sublime-completions") || (input.end_with? ".json")
 
-        if $merge == true
-            init_hashes()
-        end
-
-        Dir.glob(input) do |item|
-
-            if $merge == false
-                init_hashes()
-            end
-
-            $data = read_json(item)
-
-            if $merge == false
-                write_data(item)
-            end
-        end
-
-        if $merge == true
-            write_data($output)
-        end
+        read_file(input, "json")
 
     elsif (input.end_with? ".sublime-snippet") || (input.end_with? ".tmSnippet")|| (input.end_with? ".xml")
 
-        if $merge == true
-            init_hashes()
+        read_file(input, "xml")
+
+    elsif File.directory?(input)
+
+        unless input.end_with?("/")
+            input = input + "/"
         end
 
-        Dir.glob(input) do |item|
+        @tm = Hash.new
+        @tm['Preferences'] = Dir.glob("#{input}**/*.tmPreferences")
+        @tm['Snippets']    = Dir.glob("#{input}**/*.tmSnippet")
+        @tm['Syntaxes']    = Dir.glob("#{input}**/*.tmLanguage")
 
-            if $merge == false
-                init_hashes()
-            end
+        abort if @tm.empty?
 
-            $data = read_xml(item)
+        @parent = '_output/'+$output
 
-            if $merge == false
-                write_data(item)
-            end
+        @tm.each do |item|
+
+          next if item[1].empty?
+
+          puts "\nCollecting #{item[0].downcase}:"
+
+          item[1].each do |file|
+              puts " + #{file}"
+
+              @base = File.basename(file)
+              @parent = '_output/'+$output
+              @target = @parent+'/.tmp/'+item[0]+'/'
+
+              mkdir(@target)
+              copy_file(file, @target+@base, false)
+
+              $input_counter += 1
+          end
+
         end
 
-        if $merge == true
-            write_data($output)
-        end
+        puts "\nConverting with apm"
+        system "apm init --package #{@parent} --convert #{@parent}/.tmp"
+        FileUtils.rm_rf("#{@parent}/.tmp")
+
+        $output_counter = Dir.glob("#{@parent}/**/*.cson").count
+
     else
         puts "\nError: Unsupported file passed (#{input})"
     end
