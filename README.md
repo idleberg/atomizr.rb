@@ -15,38 +15,38 @@ A Ruby script to convert [Sublime Text](http://www.sublimetext.com/) snippets an
 
 As a shorthand to `ruby atomizr [options]`, you can set `chmod +x atomizr` and run the script as `atomizr [options]`.
 
+### Standard conversion
+
 Examples:
 
 ```bash
-# Convert snippet or completions
-atomizr --input=<file> --output=<file> [options]
+# Grab a random Sublime package
+git clone https://github.com/idleberg/AppleScript-Sublime-Text AS
 
-# Convert file into CSON
-atomizr --input=<file> --output=<file>.cson
+# Usage: atomizr --input=<file> --output=<file> [options]
 
-# Convert file into JSON
-atomizr --input=<file> --output=<file>.json
+# Convert completions into CSON
+./atomizr --input=AS/AppleScript.sublime-completions --output=completions.cson
 
-# Convert completions, save as multiple CSON files
-atomizr --input=<file>.sublime-completions --output=cson --split
-
-# Use quotes to convert multiple files at once
-atomizr --input="*.sublime-snippet" --output=cson
-
-# Merge converted snippets into single file
-atomizr --input="*.sublime-snippet" --output=<file>.cson --merge
+# Again. This time into JSON, using shorthands
+./atomiz -i AS/AppleScript.sublime-completions -o completions.json -s text.fantasy
 
 # Override scope
-atomizr --input=<file> --output=<file> --scope=text.html
+./atomizr -i AS/AppleScript.sublime-completions -o completions.json --scope=text.fantasy
 
-# Example using every possible argument
-atomizr --input=<file> --output=<file> --scope=text.html --split
+# Convert completions, one CSON file per completion
+./atomizr -i AS/AppleScript.sublime-completions -o cson --split
 
-# Same as above, using shorthands
-atomizr -i <file> -o <file> -s text.html -S
+# Convert snippets, merge all snippets into one CSON file
+# Also, use quotes for wildcards!
+./atomizr -i "AS/snippets/*.sublime-snippet" -o snippets.cson --merge
 ```
 
-Since them apm conversion of TextMate bundles requires a specific folder structure, you can use Atomizr to bundle and convert the files.
+For all available options, see `--help` for details
+
+### TextMate bundles
+
+Since them apm conversion of TextMate bundles requires a specific folder structure, you can use Atomizr to bundle and convert these files.
 
 Example:
 
@@ -55,10 +55,8 @@ Example:
 git clone https://github.com/jashkenas/coffee-script-tmbundle CoffeeScript.tmBundle
 
 # Organize files, send to apm for conversion, delete bundle
-atomizr ---input=CoffeeScript.tmBundle --output=atom-language-coffeescript --delete-input
+./atomizr -i CoffeeScript.tmBundle -o atom-language-coffeescript -X
 ```
-
-For all available options, see `atomizr --help` for details
 
 ## Filters
 
