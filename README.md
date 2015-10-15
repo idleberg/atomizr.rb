@@ -44,9 +44,18 @@ atomizr --input=<file> --output=<file> --scope=text.html --split
 
 # Same as above, using shorthands
 atomizr -i <file> -o <file> -s text.html -S
+```
 
-# Put TextMate files in order and convert with apm
-atomizr -i <folder> -o <folder>
+Since them apm conversion of TextMate bundles requires a specific folder structure, you can use Atomizr to bundle and convert the files.
+
+Example:
+
+```bash
+# Grab a random TextMate bundle
+git clone https://github.com/jashkenas/coffee-script-tmbundle CoffeeScript.tmBundle
+
+# Organize files, send to apm for conversion, delete bundle
+atomizr ---input=CoffeeScript.tmBundle --output=atom-language-coffeescript --delete-input
 ```
 
 For all available options, see `atomizr --help` for details
