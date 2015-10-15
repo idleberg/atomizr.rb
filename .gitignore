@@ -1,5 +1,9 @@
 *.sublime-completions
 *.sublime-snippet
+*.tmBundle
+*.tmCommand
+*.tmPreferences
+*.tmLanguage
 *.tmSnippet
 .bundle/
 _output
