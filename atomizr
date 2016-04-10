@@ -1,6 +1,10 @@
 #!/usr/bin/env ruby
 
-$version = "0.14.0"
+# Build one Windows, using Ocra:
+# 
+# ocra atomizr --output atomizr.exe --add-all-core --gemfile Gemfile --no-dep-run --gem-full --chdir-first --console
+
+$version = "0.15.0"
 
 require "json"
 require "nokogiri"
@@ -99,6 +103,12 @@ def read_sublime_xml(item, data)
     $data['scope'] = get_scope( data.xpath("//scope")[0].text.strip )
 
     trigger = data.xpath("//tabTrigger")[0].text.strip
+    
+    if data.xpath("//description").empty?
+        description = trigger
+    else
+        description = data.xpath("//description")[0].text.strip
+    end
 
     data.xpath("//content").each do |node|
 
@@ -114,7 +124,7 @@ def read_sublime_xml(item, data)
             end
         end
 
-        $completions[title] = {
+        $completions[description] = {
             :prefix => prefix,
             :body => body
         }
