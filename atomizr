@@ -44,7 +44,7 @@ $scope_filter = [
 meta_info = <<-EOF
 \nAtomizr, version #{$version}
 The MIT License
-Copyright (c) 2015 Jan T. Sott
+Copyright (c) 2015, 2016 Jan T. Sott
 EOF
 
 # Methods
