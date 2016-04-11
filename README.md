@@ -43,7 +43,7 @@ For all available options, see `--help` for details
 
 ### TextMate bundles
 
-Since them apm conversion of TextMate bundles requires a specific folder structure, you can use Atomizr to bundle and convert these files.
+Since apm conversion of TextMate bundles requires a specific folder structure, you can use Atomizr to bundle and convert these files.
 
 Example:
 
