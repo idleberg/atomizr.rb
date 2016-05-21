@@ -4,7 +4,7 @@
 # 
 # ocra atomizr --output atomizr.exe --add-all-core --gemfile Gemfile --no-dep-run --gem-full --chdir-first --console
 
-$version = "0.15.1"
+$version = "0.15.2"
 
 require "json"
 require "nokogiri"
@@ -564,6 +564,12 @@ $input.each do |input|
         delete_file(input) if $delete_input == true
 
     elsif File.directory?(input)
+
+        puts "\n$ which atom"
+
+        unless system("which apm")
+          abort("Unknown command 'apm'. Please run \"Install Shell Commands\" from the Atom menu.") unless $silent == true 
+        end
 
         unless input.end_with?("/")
             input = input + "/"
