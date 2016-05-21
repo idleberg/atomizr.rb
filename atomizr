@@ -565,7 +565,7 @@ $input.each do |input|
 
     elsif File.directory?(input)
 
-        puts "\n$ which atom"
+        puts "\n$ which apm"
 
         unless system("which apm")
           abort("Unknown command 'apm'. Please run \"Install Shell Commands\" from the Atom menu.") unless $silent == true 
