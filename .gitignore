@@ -19,5 +19,6 @@ npm-debug.log
 Rakefile
 vendor/
 
-# Developer files
+# Atomizr package
+*/*
 todo.md
