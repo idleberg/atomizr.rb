@@ -4,7 +4,7 @@
 # 
 # ocra atomizr --output atomizr.exe --add-all-core --gemfile Gemfile --no-dep-run --gem-full --chdir-first --console
 
-$version = "0.15.0"
+$version = "0.15.1"
 
 require "json"
 require "nokogiri"
@@ -595,7 +595,7 @@ $input.each do |input|
 
         end
 
-        puts "\nConverting with apm" unless $silent == true 
+        puts "\nConverting collection with apm" unless $silent == true 
         system "apm init --package #{@parent} --convert #{@parent}/.tmp"
         FileUtils.rm_rf("#{@parent}/.tmp")
 
