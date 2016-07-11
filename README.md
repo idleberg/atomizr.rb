@@ -1,13 +1,13 @@
 # Atomizr
 
 [![The MIT License](https://img.shields.io/badge/license-MIT-orange.svg?style=flat-square)](http://opensource.org/licenses/MIT)
-[![GitHub release](https://img.shields.io/github/release/idleberg/atomizr.svg?style=flat-square)](https://github.com/idleberg/atomizr/releases)
+[![GitHub release](https://img.shields.io/github/release/idleberg/ruby-atomizr.svg?style=flat-square)](https://github.com/idleberg/ruby-atomizr/releases)
 
 A Ruby script to convert [Sublime Text](http://www.sublimetext.com/) snippets and completions (and TextMate snippets) into [Atom](http://atom.io) snippets
 
 ## Installation
 
-1. Clone the repository `git clone https://github.com/idleberg/atomizr.git`
+1. Clone the repository `git clone https://github.com/idleberg/ruby-atomizr.git atomizr`
 2. Change directory `cd atomizr`
 3. Install Gems using [Bundler](http://bundler.io/) `bundle install`
 
@@ -73,4 +73,4 @@ This work is licensed under the [The MIT License](LICENSE.md).
 
 ## Donate
 
-You are welcome support this project using [Flattr](https://flattr.com/submit/auto?user_id=idleberg&url=https://github.com/idleberg/atomizr) or Bitcoin `17CXJuPsmhuTzFV2k4RKYwpEHVjskJktRd`
+You are welcome support this project using [Flattr](https://flattr.com/submit/auto?user_id=idleberg&url=https://github.com/idleberg/ruby-atomizr) or Bitcoin `17CXJuPsmhuTzFV2k4RKYwpEHVjskJktRd`
