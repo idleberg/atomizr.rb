@@ -4,7 +4,7 @@
 # 
 # ocra atomizr --output atomizr.exe --add-all-core --gemfile Gemfile --no-dep-run --gem-full --chdir-first --console
 
-$version = "0.15.2"
+$version = "0.16.0"
 
 require "json"
 require "nokogiri"
