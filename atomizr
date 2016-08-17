@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
-# Build one Windows, using Ocra:
-# 
+# Build on Windows, using Ocra: 
 # ocra atomizr --output atomizr.exe --add-all-core --gemfile Gemfile --no-dep-run --gem-full --chdir-first --console
 
 $version = "0.16.0"
