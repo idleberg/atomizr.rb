@@ -247,7 +247,7 @@ def write_json(data, file, many = false)
             }
         else
             json = {
-                :generator => "Atomizr v#{$version} - https://github.com/idleberg/atomizr",
+                :generator => "Generated with Atomizr - https://github.com/idleberg/ruby-atomizr",
                 data['scope'] => data['completions']
             }
         end
@@ -291,7 +291,7 @@ def write_cson(data, item, many = false)
         if $no_comment == true
             comment = ""
         else
-            comment =  "# Generated with Atomizr v#{$version} - https://github.com/idleberg/atomizr\n"
+            comment =  "# Generated with Atomizr - https://github.com/idleberg/ruby-atomizr\n"
         end
 
         cson = comment
