@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require "atomizr"
+require "fileutils"
 require "optparse"
 
 # default options
@@ -119,12 +120,12 @@ $input.each do |input|
     if (input.end_with? ".sublime-completions") || (input.end_with? ".json")
 
         Atomizr.read_file(input, "json")
-        delete_file(input) if $delete_input == true
+        Atomizr.delete_file(input) if $delete_input == true
 
     elsif (input.end_with? ".sublime-snippet") || (input.end_with? ".tmSnippet")|| (input.end_with? ".xml")
 
         Atomizr.read_file(input, "xml")
-        delete_file(input) if $delete_input == true
+        Atomizr.delete_file(input) if $delete_input == true
 
     elsif File.directory?(input)
 
@@ -158,8 +159,8 @@ $input.each do |input|
               @parent = "#{$folder}/#{$output}"
               @target = @parent+'/.tmp/'+item[0]+'/'
 
-              mkdir(@target)
-              copy_file(file, @target+@base, false)
+              Atomizr.mkdir(@target)
+              Atomizr.copy_file(file, @target+@base, false)
           end
 
         end
@@ -181,7 +182,7 @@ $input.each do |input|
             end
         end
 
-        delete_file(input) if $delete_input == true
+        Atomizr.delete_file(input) if $delete_input == true
         puts "\nCompleted."
         exit
 

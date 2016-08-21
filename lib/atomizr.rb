@@ -1,10 +1,11 @@
 require "json"
 require "nokogiri"
+require "fileutils"
 
 class Atomizr
 
     @name = "Atomizr"
-    @version = "0.18.0"
+    @version = "0.18.1"
     @author = "Jan T. Sott"
     @homepage = "https://github.com/idleberg/atomizr.rb"
 
