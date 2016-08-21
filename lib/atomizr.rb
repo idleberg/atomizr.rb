@@ -1,4 +1,12 @@
+require "json"
+require "nokogiri"
+
 class Atomizr
+
+    @name = "Atomizr"
+    @version = "0.17.4"
+    @author = "Jan T. Sott"
+    @homepage = "https://github.com/idleberg/atomizr.rb"
 
     # Arrays of filters to replace characters in strings
     @filename_filter =  [
@@ -30,15 +38,12 @@ class Atomizr
         [/\.?text\.html\.markdown/, '.source.gfm']
     ]
 
-    @meta = Gem::Specification::load("../atomizr.gemspec")
-
     def self.info
-        return "\n#{@meta.name}, version #{@meta.version}\nThe MIT License\nCopyright (c) 2015, #{Time.now.year} #{@meta.authors.join(", ")}"
+        puts "\n#{@name}, version #{@version}\nThe MIT License\nCopyright (c) 2015, 2016 #{@author}"
     end
 
-    def initialize
-        
-        
+    def self.version
+        puts "#{@version}"
     end
 
     def self.read_file(input, type)
@@ -67,7 +72,7 @@ class Atomizr
 
     def self.read_xml(item)
 
-        puts "\nReading snippet file '#{item}'"
+        puts "\nReading snippet file '#{item}'" unless $silent == true
 
         # read file, parse data
         file = File.read(item)
@@ -111,7 +116,7 @@ class Atomizr
 
             if @completions.has_key?(title)
                 if $dupes == false
-                    puts " !! Duplicate trigger #{title.dump} in #{item}"
+                    puts " !! Duplicate trigger #{title.dump} in #{item}" unless $silent == true
                 else
                     abort("\nError: duplicate trigger '#{title.dump}' in #{item}. Triggers must be unique.")
                 end
@@ -155,7 +160,7 @@ class Atomizr
 
     def self.read_json(item)
 
-        puts "\nReading completion file '#{item}'"
+        puts "\nReading completion file '#{item}'" unless $silent == true
 
         # read file
         file = File.read(item)
@@ -175,7 +180,7 @@ class Atomizr
 
             # Next if JSON contains non-standard keys
             if trigger == nil
-                puts " >> Ignoring line #{line}"
+                puts " >> Ignoring line #{line}" unless $silent == true
                 next
             end 
 
@@ -187,7 +192,7 @@ class Atomizr
 
             if @completions.has_key?(title)
                 if $dupes == false
-                    puts " !! Duplicate trigger #{title.dump} in #{item}"
+                    puts " !! Duplicate trigger #{title.dump} in #{item}" unless $silent == true
                 else
                     abort("\nError: duplicate trigger '#{title.dump}' in #{item}. Triggers must be unique.") unless $silent == true 
                 end
@@ -240,12 +245,12 @@ class Atomizr
                 }
             else
                 json = {
-                    :generator => "Atomizr v#{@meta.version} - #{@meta.homepage}",
+                    :generator => "Atomizr v#{@version} - #{@homepage}",
                     data['scope'] => data['completions']
                 }
             end
 
-            puts "Writing '#{file}'"
+            puts "Writing '#{file}'" unless $silent == true
             File.open("#{$folder}/#{file}","w") do |f|
               f.write(JSON.pretty_generate(json))
             end
@@ -268,7 +273,7 @@ class Atomizr
                     }
                 }
 
-                puts "Writing '#{file}.json'"
+                puts "Writing '#{file}.json'" unless $silent == true
                 File.open("#{$folder}/#{file}.json","w") do |f|
                   f.write(JSON.pretty_generate(json))
                 end
@@ -284,7 +289,7 @@ class Atomizr
             if $no_comment == true
                 comment = ""
             else
-                comment =  "# Generated with #{@meta.name} v#{@meta.version} - #{@meta.homepage}\n"
+                comment =  "# Generated with #{@name} v#{@version} - #{@homepage}\n"
             end
 
             cson = comment
@@ -320,7 +325,7 @@ class Atomizr
                 file = get_outname('cson', item)
             end
 
-            puts "Writing '#{file}'"
+            puts "Writing '#{file}'" unless $silent == true
             File.open("#{$folder}/#{file}","w") do |f|
               f.write(cson)
             end
@@ -351,7 +356,7 @@ class Atomizr
                     cson +="\n    \"\"\"\n"
                 end
 
-                puts "Writing '#{file}.cson'"
+                puts "Writing '#{file}.cson'" unless $silent == true
                 File.open("#{$folder}/#{file}.cson","w") do |f|
                   f.write(cson)
                 end
@@ -363,11 +368,11 @@ class Atomizr
     def self.delete_file(input)
 
         if File.directory?(input)
-            puts "\nDeleting '#{input[0..-2]}'"
+            puts "\nDeleting '#{input[0..-2]}'" unless $silent == true
             FileUtils.rm_rf(input)
         else
             Dir.glob(input) do |item|
-                puts "Deleting '#{item}'"
+                puts "Deleting '#{item}'" unless $silent == true
                 File.delete(item)
             end
         end
@@ -394,10 +399,10 @@ class Atomizr
 
         if $scope == nil
             scope = fix_scope(filter_str(scope, @scope_filter))
-            puts "Using default scope '"+scope+"'"
+            puts "Using default scope '"+scope+"'" unless $silent == true
         else
             scope = fix_scope(filter_str($scope, @scope_filter))
-            puts "Override scope using '"+scope+"'"
+            puts "Override scope using '"+scope+"'" unless $silent == true
         end
 
         return scope

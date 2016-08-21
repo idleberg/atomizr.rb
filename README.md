@@ -2,7 +2,7 @@
 
 [![The MIT License](https://img.shields.io/badge/license-MIT-orange.svg?style=flat-square)](http://opensource.org/licenses/MIT)
 [![Gem](https://img.shields.io/gem/v/atomizr.svg?style=flat-square)]()
-[![GitHub release](https://img.shields.io/github/release/idleberg/ruby-atomizr.svg?style=flat-square)](https://github.com/idleberg/ruby-atomizr/releases)
+[![GitHub release](https://img.shields.io/github/release/idleberg/ruby-atomizr.svg?style=flat-square)](https://github.com/idleberg/atomizr.rb/releases)
 
 A command-line tool to convert [Sublime Text](http://www.sublimetext.com/) snippets and completions, as well as and TextMate snippets into [Atom](http://atom.io) snippets
 
@@ -58,4 +58,4 @@ This work is licensed under the [The MIT License](LICENSE.md).
 
 ## Donate
 
-You are welcome support this project using [Flattr](https://flattr.com/submit/auto?user_id=idleberg&url=https://github.com/idleberg/ruby-atomizr) or Bitcoin `17CXJuPsmhuTzFV2k4RKYwpEHVjskJktRd`
+You are welcome support this project using [Flattr](https://flattr.com/submit/auto?user_id=idleberg&url=https://github.com/idleberg/atomizr.rb) or Bitcoin `17CXJuPsmhuTzFV2k4RKYwpEHVjskJktRd`

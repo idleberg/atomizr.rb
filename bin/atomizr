@@ -1,11 +1,7 @@
 #!/usr/bin/env ruby
 
 require "atomizr"
-require "json"
-require "nokogiri"
 require "optparse"
-require "fileutils"
-require "rubygems"
 
 # default options
 $input_counter  = 0
@@ -30,7 +26,7 @@ ARGV.options do |opts|
     opts.banner = "\nUsage: atomizr [options]"
 
     opts.on("-h", "--help", "prints this help") do
-        puts Atomizr.info()
+        Atomizr.info()
         puts opts
         exit
     end
@@ -95,16 +91,16 @@ ARGV.options do |opts|
         $silent = true
     }
 
-    opts.on_tail("-v", "--version", "show version") do
-        puts $version unless $silent == true 
+    opts.on("-v", "--version", "show version") {
+        Atomizr.version() unless $silent == true
         exit
-    end
+    }
 
     opts.parse!
 end
 
 # let's go
-puts Atomizr.info() unless $silent == true 
+Atomizr.info() unless $silent == true 
 
 # error handling
 if args < 1

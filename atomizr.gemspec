@@ -1,13 +1,13 @@
 Gem::Specification.new do |s|
   s.name        = 'atomizr'
-  s.version     = '0.17.3'
+  s.version     = '0.17.4'
   s.date        = '2016-08-21'
   s.summary     = "Converts Sublime Text snippets and completions into Atom format"
   s.description = "A command-line tool to convert Sublime Text snippets and completions, as well as and TextMate snippets into Atom snippets"
   s.authors     = ["Jan T. Sott"]
   s.files       = ["lib/atomizr.rb"]
   s.homepage    =
-    'https://github.com/idleberg/ruby-atomizr'
+    'https://github.com/idleberg/atomizr.rb'
   s.license       = 'MIT'
 
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
