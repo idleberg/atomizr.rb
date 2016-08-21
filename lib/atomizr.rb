@@ -4,10 +4,10 @@ require "fileutils"
 
 class Atomizr
 
-    @name = "Atomizr"
-    @version = "0.18.1"
-    @author = "Jan T. Sott"
-    @homepage = "https://github.com/idleberg/atomizr.rb"
+    @name = Gem.loaded_specs["atomizr"].name.capitalize
+    @version = Gem.loaded_specs["atomizr"].version
+    @author = Gem.loaded_specs["atomizr"].authors
+    @homepage = Gem.loaded_specs["atomizr"].homepage
 
     # Arrays of filters to replace characters in strings
     @filename_filter =  [
@@ -40,7 +40,7 @@ class Atomizr
     ]
 
     def self.info
-        puts "\n#{@name}, version #{@version}\nThe MIT License\nCopyright (c) 2015, 2016 #{@author}"
+        puts "\n#{@name}, version #{@version}\nThe MIT License\nCopyright (c) 2015, 2016 #{@author.join(", ")}"
     end
 
     def self.version
