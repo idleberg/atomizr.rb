@@ -1,0 +1,207 @@
+#!/usr/bin/env ruby
+
+require "./lib/atomizr.rb"
+require "json"
+require "nokogiri"
+require "optparse"
+require "fileutils"
+require "rubygems"
+
+# default options
+$input_counter  = 0
+$output_counter = 0
+$folder = "_output"
+$silent = false
+
+$scope = nil
+$merge = false
+$split = false
+$dupes = true
+$is_tm = false
+$no_tabstops = false
+$no_comment    = false
+$no_validation = false
+$delete_input  = false
+
+$meta = Gem::Specification::load("atomizr.gemspec")
+
+args = ARGV.count
+ 
+# parse arguments
+ARGV.options do |opts|
+    opts.banner = "\nUsage: atomizr [options]"
+
+    opts.on("-h", "--help", "prints this help") do
+        puts Atomizr.info()
+        puts opts
+        exit
+    end
+
+    opts.on("-i", "--input=<file>", Array, "Input file(s)") {
+        |input| $input = input
+    }
+
+    opts.on("-o", "--output=<file>", String, "Output file") {
+        |output| $output = output
+    }
+
+    opts.on("-s", "--scope=<scope>", String, "overwrite scope") {
+        |val| $scope = val
+    }
+
+    opts.on("-S", "--split", "split result into multiple files") {
+        if $merge != true
+            $split = true
+        else     
+            abort("Error: You can't split AND merge")
+        end
+    }
+
+    opts.on("-M", "--merge", "merge results into single file") {
+        if $split != true
+            $merge = true
+        else     
+            abort("Error: You can't merge AND split")
+        end
+    }
+
+    opts.on("-$", "--skip-tabstops", "skip trailing tab-stops") {
+        $no_tabstops = true
+    }
+
+    opts.on("-C", "--skip-comments", "skip generator comments") {
+        $no_comment = true
+    }
+
+    opts.on("-D", "--skip-duplicates", "skip duplicate triggers") {
+        $dupes = false
+    }
+
+    opts.on("-V", "--skip-validation", "skip file validation") {
+        $no_validation = true
+    }
+
+    opts.on("-F", "--to-folder=<target>", String, "specify target subfolder") do |folder|
+         $folder = folder
+    end
+
+    opts.on("-X", "--delete-input", "delete input file(s) on completion") {
+        $delete_input = true
+    }
+
+    opts.on("-T", "--is-textmate", "interprete snippet as TextMate") {
+        $is_tm = true
+    }
+
+    opts.on("-Z", "--silent", "run silently") {
+        $silent = true
+    }
+
+    opts.on_tail("-v", "--version", "show version") do
+        puts $version unless $silent == true 
+        exit
+    end
+
+    opts.parse!
+end
+
+# let's go
+puts Atomizr.info() unless $silent == true 
+
+# error handling
+if args < 1
+    abort("\nError: no arguments passed") unless $silent == true 
+elsif $input == nil
+    abort("\nError: no input argument passed") unless $silent == true 
+elsif $output == nil
+    abort("\nError: no output argument passed") unless $silent == true 
+end
+
+# Create output directory, if necessary
+Atomizr.mkdir("#{$folder}")
+
+$input.each do |input|
+
+    if (input.end_with? ".sublime-completions") || (input.end_with? ".json")
+
+        Atomizr.read_file(input, "json")
+        delete_file(input) if $delete_input == true
+
+    elsif (input.end_with? ".sublime-snippet") || (input.end_with? ".tmSnippet")|| (input.end_with? ".xml")
+
+        Atomizr.read_file(input, "xml")
+        delete_file(input) if $delete_input == true
+
+    elsif File.directory?(input)
+
+        puts "\n$ which apm"
+
+        unless system("which apm")
+          abort("Unknown command 'apm'. Please run \"Install Shell Commands\" from the Atom menu.") unless $silent == true 
+        end
+
+        unless input.end_with?("/")
+            input = input + "/"
+        end
+
+        @tm = Hash.new
+        @tm['Preferences'] = Dir.glob("#{input}**/*.tmPreferences")
+        @tm['Snippets']    = Dir.glob("#{input}**/*.tmSnippet")
+        @tm['Syntaxes']    = Dir.glob("#{input}**/*.tmLanguage")
+
+        abort if @tm.empty?
+
+        @tm.each do |item|
+
+          next if item[1].empty?
+
+          puts "\nCollecting #{item[0].downcase}:" unless $silent == true 
+
+          item[1].each do |file|
+              puts " + #{file}" unless $silent == true 
+
+              @base = File.basename(file)
+              @parent = "#{$folder}/#{$output}"
+              @target = @parent+'/.tmp/'+item[0]+'/'
+
+              mkdir(@target)
+              copy_file(file, @target+@base, false)
+          end
+
+        end
+
+        puts "\nConverting collection with apm" unless $silent == true 
+        system "apm init --package #{@parent} --convert #{@parent}/.tmp"
+        FileUtils.rm_rf("#{@parent}/.tmp")
+
+        @st = Hash.new
+        @st['Snippets']    = Dir.glob("#{input}**/*.sublime-snippet")
+        @st['Completions'] = Dir.glob("#{input}**/*.sublime-completions")
+
+        abort if @st.empty?
+
+        @st.each do |st|
+            st[1].each do |item|
+                next if item.empty?
+                system "#{__FILE__} -i '#{item}' -o cson -Z -F #{@parent}/snippets"
+            end
+        end
+
+        delete_file(input) if $delete_input == true
+        puts "\nCompleted."
+        exit
+
+    else
+        puts "\nError: invalid input '#{input}'" unless $silent == true 
+    end
+
+end
+
+# Game Over
+if $input_counter == 0
+    puts "\nNo files converted" unless $silent == true
+elsif $input_counter == 1
+     puts "\nAtomized #{$input_counter} file, created #{$output_counter}" unless $silent == true 
+else
+    puts "\nAtomized #{$input_counter} files, created #{$output_counter}" unless $silent == true 
+end
