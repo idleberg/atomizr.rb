@@ -4,7 +4,7 @@ require "nokogiri"
 class Atomizr
 
     @name = "Atomizr"
-    @version = "0.17.4"
+    @version = "0.18.0"
     @author = "Jan T. Sott"
     @homepage = "https://github.com/idleberg/atomizr.rb"
 
