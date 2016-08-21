@@ -9,4 +9,9 @@ Gem::Specification.new do |s|
   s.homepage    =
     'https://github.com/idleberg/ruby-atomizr'
   s.license       = 'MIT'
+
+  s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
+  s.require_paths = ["lib"]
+
+  s.add_dependency "nokogiri", "~> 1.6.7.2"
 end
