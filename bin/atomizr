@@ -23,8 +23,6 @@ $no_comment    = false
 $no_validation = false
 $delete_input  = false
 
-$meta = Gem::Specification::load("atomizr.gemspec")
-
 args = ARGV.count
  
 # parse arguments

@@ -30,8 +30,10 @@ class Atomizr
         [/\.?text\.html\.markdown/, '.source.gfm']
     ]
 
+    @meta = Gem::Specification::load("atomizr.gemspec")
+
     def self.info
-        return "\n#{$meta.name}, version #{$meta.version}\nThe MIT License\nCopyright (c) 2015, #{Time.now.year} #{$meta.authors.join(", ")}"
+        return "\n#{@meta.name}, version #{@meta.version}\nThe MIT License\nCopyright (c) 2015, #{Time.now.year} #{@meta.authors.join(", ")}"
     end
 
     def initialize
@@ -238,7 +240,7 @@ class Atomizr
                 }
             else
                 json = {
-                    :generator => "Atomizr v#{$meta.version} - #{$meta.homepage}",
+                    :generator => "Atomizr v#{@meta.version} - #{@meta.homepage}",
                     data['scope'] => data['completions']
                 }
             end
@@ -282,7 +284,7 @@ class Atomizr
             if $no_comment == true
                 comment = ""
             else
-                comment =  "# Generated with #{$meta.name} v#{$meta.version} - #{$meta.homepage}\n"
+                comment =  "# Generated with #{@meta.name} v#{@meta.version} - #{@meta.homepage}\n"
             end
 
             cson = comment
