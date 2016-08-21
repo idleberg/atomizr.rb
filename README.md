@@ -1,6 +1,7 @@
 # Atomizr
 
 [![The MIT License](https://img.shields.io/badge/license-MIT-orange.svg?style=flat-square)](http://opensource.org/licenses/MIT)
+[![Gem](https://img.shields.io/gem/v/atomizr.svg?style=flat-square)]()
 [![GitHub release](https://img.shields.io/github/release/idleberg/ruby-atomizr.svg?style=flat-square)](https://github.com/idleberg/ruby-atomizr/releases)
 
 A command-line tool to convert [Sublime Text](http://www.sublimetext.com/) snippets and completions, as well as and TextMate snippets into [Atom](http://atom.io) snippets
@@ -10,8 +11,6 @@ A command-line tool to convert [Sublime Text](http://www.sublimetext.com/) snipp
 `gem install atomizr`
 
 ## Usage
-
-As a shorthand to `ruby atomizr [options]`, you can set `chmod +x atomizr` and run the script as `atomizr [options]`.
 
 ### Standard conversion
 
