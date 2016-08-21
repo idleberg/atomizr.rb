@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'atomizr'
-  s.version     = '0.17.0'
+  s.version     = '0.17.1'
   s.date        = '2016-08-21'
   s.summary     = "Converts Sublime Text snippets and completions into Atom format"
   s.description = "A command-line tool to convert Sublime Text snippets and completions, as well as and TextMate snippets into Atom snippets"
