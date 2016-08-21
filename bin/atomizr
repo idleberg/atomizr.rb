@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require "./lib/atomizr.rb"
+require "atomizr"
 require "json"
 require "nokogiri"
 require "optparse"
