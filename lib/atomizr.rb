@@ -30,7 +30,7 @@ class Atomizr
         [/\.?text\.html\.markdown/, '.source.gfm']
     ]
 
-    @meta = Gem::Specification::load("atomizr.gemspec")
+    @meta = Gem::Specification::load("../atomizr.gemspec")
 
     def self.info
         return "\n#{@meta.name}, version #{@meta.version}\nThe MIT License\nCopyright (c) 2015, #{Time.now.year} #{@meta.authors.join(", ")}"
