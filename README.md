@@ -24,17 +24,17 @@ git clone https://github.com/idleberg/AppleScript-Sublime-Text AS
 # Usage: atomizr --input=<file> --output=<file> [options]
 
 # Convert completions into CSON
-./atomizr --input=AS/AppleScript.sublime-completions --output=applescript.cson
+atomizr --input=AS/AppleScript.sublime-completions --output=applescript.cson
 
 # Again, this time to JSON, and using shorthands
-./atomizr -i AS/AppleScript.sublime-completions -o applescript.json
+atomizr -i AS/AppleScript.sublime-completions -o applescript.json
 
 # Convert completions, one file per completion
-./atomizr -i AS/AppleScript.sublime-completions -o cson --split
+atomizr -i AS/AppleScript.sublime-completions -o cson --split
 
 # Convert snippets, merge into one file.
 # Put wildcard in quotes!
-./atomizr -i "AS/snippets/*.sublime-snippet" -o snippets.cson --merge
+atomizr -i "AS/snippets/*.sublime-snippet" -o snippets.cson --merge
 ```
 
 For all available options, see `--help` for details
@@ -50,19 +50,7 @@ Example:
 git clone https://github.com/jashkenas/coffee-script-tmbundle CoffeeScript.tmBundle
 
 # Organize files, convert and delete bundle
-./atomizr -i CoffeeScript.tmBundle -o atom-language-coffeescript -X
-```
-
-## Filters
-
-In the header of the script, you can define arrays for replacement operations. Filters can be defined for file-name and snippet title, prefix and body.
-
-```bash
-# replace characters in file-name
-@filename_filter =  [
-    [/[\x00\/\\:\*\?\"\$<>\|]/, "_"],
-    ["\t",  "-"]
-]
+atomizr -i CoffeeScript.tmBundle -o atom-language-coffeescript -X
 ```
 
 ## License
