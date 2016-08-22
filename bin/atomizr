@@ -24,7 +24,7 @@ args = ARGV.count
  
 # parse arguments
 ARGV.options do |opts|
-    opts.banner = "\nUsage: atomizr [options]"
+    opts.banner = "\nUsage: atomizr <input> <output> [options]"
 
     opts.on("-h", "--help", "prints this help") do
         Atomizr.info()
