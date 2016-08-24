@@ -5,7 +5,9 @@
 [![GitHub release](https://img.shields.io/github/release/idleberg/ruby-atomizr.svg?style=flat-square)](https://github.com/idleberg/atomizr.rb/releases)
 [![Gem](https://img.shields.io/gem/dt/atomizr.svg?style=flat-square)](https://rubygems.org/gems/atomizr)
 
-A command-line tool to convert [Sublime Text](http://www.sublimetext.com/) snippets and completions, as well as TextMate snippets, into [Atom](http://atom.io) snippets
+A command-line tool to convert [Sublime Text](http://www.sublimetext.com/) snippets and completions, as well as TextMate snippets, into [Atom](http://atom.io) snippets.
+
+Also available as packages for [Atom](https://github.com/idleberg/atom-atomizr) and [Sublime Text](https://github.com/idleberg/sublime-atomizr).
 
 ## Installation
 
