@@ -246,7 +246,7 @@ class Atomizr
                 }
             else
                 json = {
-                    :generator => "Atomizr v#{@version} - #{@homepage}",
+                    :"#" => "# Generated with #{@name} - #{@homepage}",
                     data['scope'] => data['completions']
                 }
             end
@@ -290,7 +290,7 @@ class Atomizr
             if $no_comment == true
                 comment = ""
             else
-                comment =  "# Generated with #{@name} v#{@version} - #{@homepage}\n"
+                comment =  "# Generated with #{@name} - #{@homepage}\n"
             end
 
             cson = comment
