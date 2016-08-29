@@ -21,22 +21,22 @@ Examples:
 
 ```bash
 # Grab a random Sublime Text package
-git clone https://github.com/idleberg/AppleScript-Sublime-Text AS
+git clone https://github.com/idleberg/sublime-applescript AppleScript
 
 # Usage: atomizr --input=<file> --output=<file> [options]
 
 # Convert completions into CSON
-atomizr --input=AS/AppleScript.sublime-completions --output=applescript.cson
+atomizr --input=AppleScript/AppleScript.sublime-completions --output=applescript.cson
 
 # Again, this time to JSON, and using shorthands
-atomizr -i AS/AppleScript.sublime-completions -o applescript.json
+atomizr -i AppleScript/AppleScript.sublime-completions -o applescript.json
 
 # Convert completions, one file per completion
-atomizr -i AS/AppleScript.sublime-completions -o cson --split
+atomizr -i AppleScript/AppleScript.sublime-completions -o cson --split
 
 # Convert snippets, merge into one file.
 # Put wildcard in quotes!
-atomizr -i "AS/snippets/*.sublime-snippet" -o snippets.cson --merge
+atomizr -i "AppleScript/snippets/*.sublime-snippet" -o snippets.cson --merge
 ```
 
 For all available options, see `--help` for details
