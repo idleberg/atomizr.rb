@@ -7,7 +7,7 @@
 
 A command-line tool to convert [Sublime Text](http://www.sublimetext.com/) snippets and completions, as well as TextMate snippets, into [Atom](http://atom.io) snippets.
 
-Also available as packages for [Atom](https://github.com/idleberg/atom-atomizr) and [Sublime Text](https://github.com/idleberg/sublime-atomizr).
+Also available as packages for [Atom](https://github.com/idleberg/atom-atomizr) and [Sublime Text](https://github.com/idleberg/sublime-atomizr) (see [comparison chart](https://gist.github.com/idleberg/db6833ee026d2cd7c043bba36733b701)).
 
 ## Installation
 
