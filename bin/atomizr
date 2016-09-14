@@ -115,6 +115,8 @@ end
 # Create output directory, if necessary
 Atomizr.mkdir("#{$folder}")
 
+startTime = Time.now
+
 $input.each do |input|
 
     if (input.end_with? ".sublime-completions") || (input.end_with? ".json")
@@ -192,6 +194,9 @@ $input.each do |input|
 
 end
 
+endTime = Time.now
+duration = endTime - startTime
+
 # Game Over
 if $input_counter == 0
     puts "\nNo files converted" unless $silent == true
@@ -200,3 +205,5 @@ elsif $input_counter == 1
 else
     puts "\nAtomized #{$input_counter} files, created #{$output_counter}" unless $silent == true 
 end
+
+puts "Finished in #{duration} seconds"
