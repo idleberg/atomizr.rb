@@ -415,13 +415,7 @@ class Atomizr
             return input
         end
 
-        stops = input.scan(/\${?(\d+)/)
-        if stops.length > 0
-            highest = stops.sort.flatten.last.to_i + 1
-            return "#{input}$#{highest}"
-        end
-
-        return "#{input}$1"
+        return "#{input}$0"
     end
 
     # prepend dot to scope
