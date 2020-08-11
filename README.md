@@ -58,7 +58,3 @@ atomizr -i CoffeeScript.tmBundle -o atom-language-coffeescript -X
 ## License
 
 This work is licensed under the [The MIT License](LICENSE.md).
-
-## Donate
-
-You are welcome support this project using [Flattr](https://flattr.com/submit/auto?user_id=idleberg&url=https://github.com/idleberg/atomizr.rb) or Bitcoin `17CXJuPsmhuTzFV2k4RKYwpEHVjskJktRd`
